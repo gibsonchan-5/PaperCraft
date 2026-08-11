@@ -1,0 +1,9 @@
+{
+  "id": "papercraft",
+  "name": "PaperCraft",
+  "version": "1.0.0",
+  "minAppVersion": "1.0.0",
+  "description": "客制化稿纸样式，提供多种优质模板，支持纸张质感、条纹、颜色、字体排版和绘图标注功能",
+  "author": "JC",
+  "isDesktopOnly": false
+}

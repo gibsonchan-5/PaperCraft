@@ -1,0 +1,532 @@
+/* ===== PaperCraft 稿纸工坊 ===== */
+
+/* ==================== 侧边栏 ==================== */
+.papercraft-sidebar {
+  padding: 12px;
+  overflow-y: auto;
+}
+
+/* ==================== 实时预览区（设置面板） ==================== */
+.papercraft-preview-wrapper {
+  margin-bottom: 24px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--background-secondary);
+}
+
+.papercraft-preview-title {
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--background-secondary-alt);
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.papercraft-preview-box {
+  padding: 0;
+}
+
+.papercraft-preview-page {
+  min-height: 200px;
+  background-attachment: local;
+  background-repeat: repeat;
+  transition: all 0.2s ease;
+}
+
+.papercraft-preview-line {
+  margin-bottom: 0;
+  line-height: inherit;
+}
+
+.papercraft-sidebar-header {
+  margin-bottom: 16px;
+}
+
+.papercraft-sidebar-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.papercraft-sidebar-header-top h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-normal);
+}
+
+/* 标题栏图标按钮组 */
+.papercraft-header-icons {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.papercraft-header-icon-btn {
+  background: none;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  width: 26px;
+  height: 26px;
+  font-size: 15px;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  line-height: 1;
+  padding: 0;
+}
+
+.papercraft-header-icon-btn:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+  border-color: var(--background-modifier-border-hover);
+}
+
+.papercraft-header-icon-btn[aria-label="清除格式"] {
+  color: var(--text-error);
+}
+
+.papercraft-header-icon-btn[aria-label="清除格式"]:hover {
+  background: var(--background-modifier-error-hover, #e06060);
+  color: #fff;
+  border-color: var(--background-modifier-error-hover, #e06060);
+}
+
+.papercraft-section {
+  margin-bottom: 20px;
+}
+
+.papercraft-section-title {
+  margin: 0 0 8px 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.papercraft-empty-hint {
+  font-size: 12px;
+  color: var(--text-faint);
+  font-style: italic;
+  padding: 8px 0;
+}
+
+/* 模板网格 */
+.papercraft-template-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.papercraft-template-card {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  overflow: hidden;
+  background: var(--background-primary);
+}
+
+.papercraft-template-card:hover {
+  border-color: var(--background-modifier-border-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.papercraft-template-card.active {
+  border-color: var(--interactive-accent);
+  border-width: 2px;
+  box-shadow: 0 0 0 2px var(--interactive-accent-bg, rgba(98, 140, 255, 0.15));
+}
+
+/* 缩略图 — 缩小 */
+.papercraft-template-thumb {
+  width: 100%;
+  height: 42px;
+  background-attachment: local;
+  background-repeat: repeat;
+  background-size: auto;
+}
+
+.papercraft-template-name {
+  padding: 4px 4px;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-normal);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.papercraft-sidebar-action {
+  margin-top: 10px;
+}
+
+.papercraft-sidebar-action button {
+  width: 100%;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* 清除格式按钮 */
+.papercraft-clear-btn {
+  background: var(--background-modifier-error) !important;
+  color: #fff !important;
+  border: none !important;
+  font-weight: 600 !important;
+}
+
+.papercraft-clear-btn:hover {
+  opacity: 0.85;
+}
+
+/* ==================== 模态框 ==================== */
+.papercraft-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.papercraft-modal-content {
+  background: var(--background-primary);
+  border-radius: 8px;
+  padding: 20px;
+  min-width: 300px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.papercraft-modal-content h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.papercraft-modal-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.papercraft-modal-input:focus {
+  outline: none;
+  border-color: var(--interactive-accent);
+}
+
+.papercraft-modal-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.papercraft-modal-buttons button {
+  padding: 6px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.papercraft-modal-cancel {
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  color: var(--text-normal);
+}
+
+.papercraft-modal-cancel:hover {
+  background: var(--background-modifier-hover);
+}
+
+/* ==================== 稿纸主题激活 ==================== */
+.papercraft-active .markdown-source-view .cm-content,
+.papercraft-active .markdown-preview-view {
+  background-attachment: local;
+  transition: background 0.3s ease;
+}
+
+/* ==================== 绘图图层 ==================== */
+.papercraft-drawing-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.papercraft-drawing-layer.active {
+  pointer-events: auto;
+  cursor: crosshair;
+}
+
+/* ==================== 绘图工具栏 ==================== */
+.papercraft-toolbar {
+  display: flex;
+  gap: 4px;
+  padding: 8px;
+  background: var(--background-secondary);
+  border-radius: 6px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.papercraft-tool-button {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  background: var(--background-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  color: var(--text-normal);
+}
+
+.papercraft-tool-button:hover {
+  background: var(--background-modifier-hover);
+  border-color: var(--background-modifier-border-hover);
+}
+
+.papercraft-tool-button.active {
+  background: var(--interactive-accent);
+  border-color: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.papercraft-tool-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ==================== 颜色选择器 ==================== */
+.papercraft-color-picker {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 0;
+}
+
+.papercraft-color-swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 2px solid var(--background-modifier-border);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.papercraft-color-swatch:hover {
+  transform: scale(1.1);
+  border-color: var(--background-modifier-border-hover);
+}
+
+.papercraft-color-swatch.active {
+  border-color: var(--interactive-accent);
+  border-width: 3px;
+  box-shadow: 0 0 0 2px var(--background-primary);
+}
+
+/* ==================== 滑条 ==================== */
+.papercraft-slider {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--background-modifier-border);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.papercraft-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--interactive-accent);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.papercraft-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.papercraft-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--interactive-accent);
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* ==================== 设置面板标签页 ==================== */
+.papercraft-tab-nav {
+  display: flex;
+  border-bottom: 1px solid var(--background-modifier-border);
+  margin-bottom: 20px;
+  overflow-x: auto;
+}
+
+.papercraft-tab {
+  background: none;
+  border: none;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-muted);
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.papercraft-tab:hover {
+  color: var(--text-normal);
+}
+
+.papercraft-tab.active {
+  color: var(--interactive-accent);
+  border-bottom-color: var(--interactive-accent);
+  font-weight: 500;
+}
+
+.papercraft-tab-content {
+  padding: 0 4px;
+}
+
+.papercraft-tab-content h2 {
+  margin-top: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+
+.papercraft-tab-content h3 {
+  margin-top: 24px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+
+/* ==================== 新布局：标签导航条 ==================== */
+.papercraft-tab-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 8px;
+  background: var(--background-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--background-modifier-border);
+}
+
+.papercraft-tab-btn {
+  flex: 1;
+  background: none;
+  border: 1px solid transparent;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-muted);
+  border-radius: 6px;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.papercraft-tab-btn:hover {
+  color: var(--text-normal);
+  background: var(--background-primary);
+  border-color: var(--background-modifier-border);
+}
+
+.papercraft-tab-btn.active {
+  color: var(--text-on-accent);
+  background: var(--interactive-accent);
+  border-color: var(--interactive-accent);
+}
+
+/* ==================== 竖向操作按钮 ==================== */
+.papercraft-action-buttons-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 12px;
+  background: var(--background-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--background-modifier-border);
+}
+
+.papercraft-action-btn {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+  color: var(--text-normal);
+}
+
+.papercraft-action-btn:hover {
+  background: var(--background-modifier-hover);
+  border-color: var(--background-modifier-border-hover);
+}
+
+.papercraft-action-btn.mod-cta {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
+}
+
+.papercraft-action-btn.mod-cta:hover {
+  background: var(--interactive-accent-hover);
+}
+
+/* ==================== 版本信息 ==================== */
+.papercraft-version {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-faint);
+  margin-top: 24px;
+  padding: 12px;
+}
+
+/* ==================== 打印 ==================== */
+@media print {
+  .papercraft-drawing-layer {
+    display: none !important;
+  }
+  .papercraft-active .markdown-source-view .cm-content,
+  .papercraft-active .markdown-preview-view {
+    background: white !important;
+  }
+}

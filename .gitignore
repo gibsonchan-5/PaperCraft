@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Build artifacts (keep main.js for Obsidian plugin distribution)
+# main.js is needed for direct installation
+
+# Development files
+demo.html
+test-click.html
+项目总结.md
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log

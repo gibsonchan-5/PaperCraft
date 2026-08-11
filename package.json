@@ -1,0 +1,19 @@
+{
+  "name": "papercraft",
+  "version": "1.0.0",
+  "description": "Obsidian plugin for customizing paper styles with live preview",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "node esbuild.config.mjs production"
+  },
+  "keywords": ["obsidian", "plugin", "paper", "template", "css"],
+  "author": "JC",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "esbuild": "^0.20.0",
+    "obsidian": "latest",
+    "typescript": "^5.0.0"
+  }
+}
