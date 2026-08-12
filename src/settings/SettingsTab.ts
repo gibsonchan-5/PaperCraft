@@ -4,7 +4,7 @@
  */
 
 import { App, PluginSettingTab, Setting, Modal, TextComponent, Notice } from 'obsidian';
-import type PaperCraftPlugin from '../main';
+import type PaperCraftPlugin from '../../main';
 import type { TextureType, LinePattern, PartialTemplateSettings, PaperCraftSettings, PaperTemplate } from '../data/PaperData';
 import { FONT_PRESETS, DEFAULT_SETTINGS } from '../data/Defaults';
 
@@ -318,7 +318,8 @@ export class SettingsTab extends PluginSettingTab {
    * 返回空数组表示使用传统的 display() 方法，
    * 因为本插件设置面板包含实时预览区和复杂的自定义组件，不适合声明式 API
    */
-  getSettingDefinitions(): unknown[] {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getSettingDefinitions(): any[] {
     return [];
   }
 
@@ -660,7 +661,7 @@ export class SettingsTab extends PluginSettingTab {
       '遥襟甫畅，逸兴遄飞。',
     ];
     sampleTexts.forEach(text => {
-      this.previewPage.createDiv({ cls: 'papercraft-preview-line', text });
+      this.previewPage?.createDiv({ cls: 'papercraft-preview-line', text });
     });
 
     this.refreshPreview();

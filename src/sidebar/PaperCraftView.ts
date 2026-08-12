@@ -4,7 +4,7 @@
  */
 
 import { ItemView, WorkspaceLeaf } from 'obsidian';
-import type PaperCraftPlugin from '../main';
+import type PaperCraftPlugin from '../../main';
 import type { PaperTemplate, Language } from '../data/PaperData';
 import { t } from '../i18n/i18n';
 

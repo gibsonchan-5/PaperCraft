@@ -3,7 +3,7 @@
  * PaperCraft - Main Entry
  */
 
-import { Plugin, MarkdownView, WorkspaceLeaf, WorkspaceSplit } from 'obsidian';
+import { Plugin, MarkdownView, WorkspaceLeaf } from 'obsidian';
 import type { PaperCraftSettings } from './src/data/PaperData';
 import { ensureCompleteSettings } from './src/data/Defaults';
 import { SettingsTab } from './src/settings/SettingsTab';
@@ -174,9 +174,11 @@ export default class PaperCraftPlugin extends Plugin {
   }
 
   /**
-   * 类型守卫：判断是否为可折叠的 Split 容器
+   * 类型守卫：判断是否为可折叠的容器（含 toggle 方法）
    */
-  private isCollapsibleSplit(parent: WorkspaceLeaf['parent']): parent is WorkspaceSplit & { collapsed: boolean; toggle: () => void } {
-    return parent !== null && typeof (parent as WorkspaceSplit).toggle === 'function';
+  private isCollapsibleContainer(parent: unknown): boolean {
+    if (parent === null || parent === undefined) return false;
+    const candidate = parent as { collapsed?: unknown; toggle?: unknown };
+    return typeof candidate.toggle === 'function' && typeof candidate.collapsed === 'boolean';
   }
 }

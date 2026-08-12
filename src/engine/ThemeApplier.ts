@@ -6,20 +6,11 @@
 import type { PaperCraftSettings } from '../data/PaperData';
 import { CSSGenerator } from './CSSGenerator';
 
-/**
- * 样式宿主接口（最小依赖）
- */
-interface StyleHost {
-  addStyle(content: string): HTMLStyleElement | CSSStyleSheet;
-}
-
 export class ThemeApplier {
-  private plugin: StyleHost;
   private generator: CSSGenerator;
   private styleEl: HTMLStyleElement | null = null;
 
-  constructor(plugin: StyleHost) {
-    this.plugin = plugin;
+  constructor(_plugin: unknown) {
     this.generator = new CSSGenerator();
   }
 
@@ -41,17 +32,18 @@ export class ThemeApplier {
   }
 
   /**
-   * 注入 CSS（使用 Plugin.addStyle，符合 Obsidian 审核要求）
+   * 注入 CSS
    */
   private injectCSS(css: string): void {
     if (this.styleEl) {
       this.styleEl.remove();
       this.styleEl = null;
     }
-    const added = this.plugin.addStyle(css);
-    if (added instanceof HTMLStyleElement) {
-      this.styleEl = added;
-    }
+    const style = document.createElement('style');
+    style.id = 'papercraft-dynamic-style';
+    style.textContent = css;
+    document.head.appendChild(style);
+    this.styleEl = style;
   }
 
   /**

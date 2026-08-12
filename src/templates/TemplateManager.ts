@@ -4,7 +4,7 @@
  */
 
 import type { PaperTemplate } from '../data/PaperData';
-import type PaperCraftPlugin from '../main';
+import type PaperCraftPlugin from '../../main';
 
 export class TemplateManager {
   private plugin: PaperCraftPlugin;

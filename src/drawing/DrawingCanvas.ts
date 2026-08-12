@@ -301,11 +301,15 @@ export class DrawingCanvas {
    * 创建元素数据
    */
   private createElementData(endPoint: [number, number]): DrawingElement | null {
+    const toPoints = (pts: Array<[number, number]>): Array<{ x: number; y: number }> =>
+      pts.map(([x, y]) => ({ x, y }));
+
     switch (this.activeTool) {
       case 'line':
         return {
+          id: '',
           type: 'line',
-          points: [this.startPoint, endPoint],
+          points: toPoints([this.startPoint, endPoint]),
           color: this.toolConfig.strokeColor,
           lineWidth: this.toolConfig.strokeWidth,
           opacity: this.toolConfig.opacity,
@@ -316,8 +320,9 @@ export class DrawingCanvas {
         const w = Math.abs(endPoint[0] - this.startPoint[0]);
         const h = Math.abs(endPoint[1] - this.startPoint[1]);
         return {
+          id: '',
           type: 'rect',
-          points: [[x, y], [x + w, y + h]],
+          points: toPoints([[x, y], [x + w, y + h]]),
           color: this.toolConfig.strokeColor,
           lineWidth: this.toolConfig.strokeWidth,
           opacity: this.toolConfig.opacity,
@@ -328,8 +333,9 @@ export class DrawingCanvas {
         const dy = endPoint[1] - this.startPoint[1];
         const radius = Math.sqrt(dx * dx + dy * dy);
         return {
+          id: '',
           type: 'circle',
-          points: [this.startPoint, [radius, 0]],
+          points: toPoints([this.startPoint, [radius, 0]]),
           color: this.toolConfig.strokeColor,
           lineWidth: this.toolConfig.strokeWidth,
           opacity: this.toolConfig.opacity,
@@ -337,8 +343,9 @@ export class DrawingCanvas {
       }
       case 'freehand':
         return {
+          id: '',
           type: 'freehand',
-          points: this.currentPath as Array<{x: number; y: number}>,
+          points: toPoints(this.currentPath as Array<[number, number]>),
           color: this.toolConfig.strokeColor,
           lineWidth: this.toolConfig.strokeWidth,
           opacity: this.toolConfig.opacity,
