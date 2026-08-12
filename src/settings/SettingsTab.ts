@@ -286,6 +286,9 @@ export class SettingsTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
+    // === 0. 顶部重要提示：参数只影响实时预览，不影响当前笔记 ===
+    this.buildPreviewNotice(containerEl);
+
     // === 1. 实时预览区 ===
     this.buildPreview(containerEl);
 
@@ -296,6 +299,7 @@ export class SettingsTab extends PluginSettingTab {
       { id: 'lines', label: '条纹图案' },
       { id: 'colors', label: '颜色配色' },
       { id: 'typography', label: '字体排版' },
+      { id: 'templates', label: '模板管理' },
     ];
 
     tabs.forEach(tab => {
@@ -321,6 +325,17 @@ export class SettingsTab extends PluginSettingTab {
     // === 版本信息 ===
     containerEl.createEl('hr');
     containerEl.createEl('p', { text: `PaperCraft v${this.plugin.manifest.version}`, cls: 'papercraft-version' });
+  }
+
+  /**
+   * 构建预览专属提示：强调参数只影响实时预览
+   */
+  private buildPreviewNotice(container: HTMLElement): void {
+    const notice = container.createDiv({ cls: 'papercraft-preview-notice' });
+    notice.createEl('strong', { text: '⚠️ 提示：' });
+    notice.createSpan({ text: '此处的所有参数调整仅影响上方的实时预览区，' });
+    notice.createEl('br');
+    notice.createSpan({ text: '不会自动应用到当前笔记。满意后请点击底部「应用到笔记」按钮。' });
   }
 
   /**
@@ -354,7 +369,84 @@ export class SettingsTab extends PluginSettingTab {
       case 'typography':
         this.renderTypographyTab(this.tabContentEl);
         break;
+      case 'templates':
+        this.renderTemplatesTab(this.tabContentEl);
+        break;
     }
+  }
+
+  /**
+   * 渲染模板管理标签页
+   */
+  private renderTemplatesTab(container: HTMLElement): void {
+    const userTemplates = this.plugin.templateManager.getUserTemplates();
+
+    // 标题
+    new Setting(container)
+      .setName('我的模板')
+      .setDesc('管理你保存的自定义模板（系统内置模板不可删除）');
+
+    if (userTemplates.length === 0) {
+      const empty = container.createDiv({ cls: 'papercraft-template-empty' });
+      empty.createEl('p', {
+        text: '📝 暂无自定义模板',
+        cls: 'papercraft-template-empty-title',
+      });
+      empty.createEl('p', {
+        text: '在设置面板底部点击「保存为新模板」可创建自定义模板。',
+        cls: 'papercraft-template-empty-hint',
+      });
+      return;
+    }
+
+    // 模板列表
+    const listEl = container.createDiv({ cls: 'papercraft-template-list' });
+    userTemplates.forEach(template => {
+      const itemEl = listEl.createDiv({ cls: 'papercraft-template-item' });
+      const infoEl = itemEl.createDiv({ cls: 'papercraft-template-item-info' });
+      infoEl.createEl('div', { text: template.name, cls: 'papercraft-template-item-name' });
+      const desc = template.settings.lines?.pattern === 'none'
+        ? '纯色模板'
+        : `线条：${this.patternLabel(template.settings.lines?.pattern)} · 字号：${template.settings.typography?.fontSize ?? 16}px`;
+      infoEl.createEl('div', { text: desc, cls: 'papercraft-template-item-desc' });
+
+      const actionsEl = itemEl.createDiv({ cls: 'papercraft-template-item-actions' });
+      const applyBtn = actionsEl.createEl('button', {
+        text: '应用',
+        cls: 'papercraft-template-item-apply',
+      });
+      applyBtn.addEventListener('click', () => {
+        this.plugin.templateManager.applyTemplate(template.id);
+        new Notice(`已应用模板：${template.name}`);
+      });
+
+      const deleteBtn = actionsEl.createEl('button', {
+        text: '删除',
+        cls: 'papercraft-template-item-delete',
+      });
+      deleteBtn.addEventListener('click', () => {
+        const confirmed = confirm(`确定要删除模板「${template.name}」吗？此操作不可撤销。`);
+        if (confirmed) {
+          this.plugin.templateManager.deleteUserTemplate(template.id);
+          new Notice(`已删除模板：${template.name}`);
+          this.renderTabContent();
+        }
+      });
+    });
+  }
+
+  /**
+   * 线条模式中文标签
+   */
+  private patternLabel(pattern: string | undefined): string {
+    const map: Record<string, string> = {
+      none: '无',
+      horizontal: '横线',
+      vertical: '竖线',
+      grid: '方格',
+      dot: '点阵',
+    };
+    return map[pattern ?? 'none'] ?? '无';
   }
 
   private renderTextureTab(container: HTMLElement): void {

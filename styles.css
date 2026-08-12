@@ -6,6 +6,110 @@
   overflow-y: auto;
 }
 
+/* ==================== 预览专属提示 ==================== */
+.papercraft-preview-notice {
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: rgba(220, 130, 80, 0.12);
+  border: 1px solid rgba(220, 130, 80, 0.4);
+  border-radius: 8px;
+  color: var(--text-normal);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.papercraft-preview-notice strong {
+  color: #d36b3b;
+}
+
+/* ==================== 模板管理 ==================== */
+.papercraft-template-empty {
+  padding: 24px 16px;
+  text-align: center;
+  background: var(--background-secondary);
+  border-radius: 8px;
+  border: 1px dashed var(--background-modifier-border);
+}
+
+.papercraft-template-empty-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin: 0 0 8px 0;
+}
+
+.papercraft-template-empty-hint {
+  font-size: 12px;
+  color: var(--text-faint);
+  margin: 0;
+}
+
+.papercraft-template-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.papercraft-template-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--background-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--background-modifier-border);
+  gap: 12px;
+}
+
+.papercraft-template-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.papercraft-template-item-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-normal);
+  margin-bottom: 4px;
+  word-break: break-all;
+}
+
+.papercraft-template-item-desc {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+.papercraft-template-item-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.papercraft-template-item-apply,
+.papercraft-template-item-delete {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+  color: var(--text-normal);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.15s ease;
+}
+
+.papercraft-template-item-apply:hover {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
+}
+
+.papercraft-template-item-delete:hover {
+  background: var(--background-modifier-error);
+  color: #fff;
+  border-color: var(--background-modifier-error);
+}
+
 /* ==================== 实时预览区（设置面板） ==================== */
 .papercraft-preview-wrapper {
   margin-bottom: 24px;

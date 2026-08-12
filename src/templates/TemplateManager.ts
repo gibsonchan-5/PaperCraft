@@ -53,7 +53,7 @@ export class TemplateManager {
           texture: { type: 'none', textureOpacity: 0, textureScale: 1 },
           lines: { pattern: 'horizontal', gap: 36, thickness: 0.6, color: 'rgba(100, 180, 140, 0.28)' },
           colors: { paperBackground: '#E8F5E9', textColor: '#2D4A32', preset: 'custom' },
-          typography: { fontFamily: 'Microsoft YaHei', fontSize: 15, letterSpacing: 0.01, lineHeight: 1.75, paragraphSpacing: 14, pageMargin: { top: 32, right: 38, bottom: 32, left: 58 } },
+          typography: { fontFamily: 'Microsoft YaHei', fontSize: 17, letterSpacing: 0.01, lineHeight: 1.75, paragraphSpacing: 14, pageMargin: { top: 32, right: 38, bottom: 32, left: 58 } },
         },
       },
       {
@@ -64,7 +64,7 @@ export class TemplateManager {
           texture: { type: 'none', textureOpacity: 0, textureScale: 1 },
           lines: { pattern: 'dot', gap: 32, thickness: 1.0, color: 'rgba(139, 90, 43, 0.35)' },
           colors: { paperBackground: '#F5ECD6', textColor: '#4A3A2A', preset: 'custom' },
-          typography: { fontFamily: 'STSong', fontSize: 16, letterSpacing: 0.05, lineHeight: 1.65, paragraphSpacing: 8, pageMargin: { top: 40, right: 50, bottom: 40, left: 65 } },
+          typography: { fontFamily: 'STSong', fontSize: 18, letterSpacing: 0.05, lineHeight: 1.65, paragraphSpacing: 8, pageMargin: { top: 40, right: 50, bottom: 40, left: 65 } },
         },
       },
       {
@@ -86,7 +86,7 @@ export class TemplateManager {
           texture: { type: 'none', textureOpacity: 0, textureScale: 1 },
           lines: { pattern: 'dot', gap: 30, thickness: 1.2, color: 'rgba(86, 170, 225, 0.40)' },
           colors: { paperBackground: '#E3F2FD', textColor: '#1A3A5A', preset: 'custom' },
-          typography: { fontFamily: 'PingFang SC', fontSize: 16, letterSpacing: 0.02, lineHeight: 1.7, paragraphSpacing: 10, pageMargin: { top: 34, right: 42, bottom: 34, left: 62 } },
+          typography: { fontFamily: 'PingFang SC', fontSize: 18, letterSpacing: 0.02, lineHeight: 1.7, paragraphSpacing: 10, pageMargin: { top: 34, right: 42, bottom: 34, left: 62 } },
         },
       },
       {
@@ -109,7 +109,7 @@ export class TemplateManager {
           texture: { type: 'none', textureOpacity: 0, textureScale: 1 },
           lines: { pattern: 'dot', gap: 28, thickness: 1.0, color: 'rgba(180, 180, 180, 0.30)' },
           colors: { paperBackground: '#FFFFFF', textColor: '#1A1A1A', preset: 'custom' },
-          typography: { fontFamily: 'Microsoft YaHei', fontSize: 15, letterSpacing: 0.01, lineHeight: 1.6, paragraphSpacing: 8, pageMargin: { top: 30, right: 40, bottom: 30, left: 60 } },
+          typography: { fontFamily: 'Microsoft YaHei', fontSize: 17, letterSpacing: 0.01, lineHeight: 1.6, paragraphSpacing: 8, pageMargin: { top: 30, right: 40, bottom: 30, left: 60 } },
         },
       },
       {
@@ -120,7 +120,7 @@ export class TemplateManager {
           texture: { type: 'none', textureOpacity: 0, textureScale: 1 },
           lines: { pattern: 'horizontal', gap: 36, thickness: 0.7, color: 'rgba(40, 80, 120, 0.35)' },
           colors: { paperBackground: '#F5F9FC', textColor: '#2C3E50', preset: 'custom' },
-          typography: { fontFamily: 'SimSun', fontSize: 16, letterSpacing: 0.02, lineHeight: 1.8, paragraphSpacing: 12, pageMargin: { top: 34, right: 44, bottom: 34, left: 64 } },
+          typography: { fontFamily: 'SimSun', fontSize: 18, letterSpacing: 0.02, lineHeight: 1.8, paragraphSpacing: 12, pageMargin: { top: 34, right: 44, bottom: 34, left: 64 } },
         },
       },
       {
@@ -131,7 +131,7 @@ export class TemplateManager {
           texture: { type: 'none', textureOpacity: 0, textureScale: 1 },
           lines: { pattern: 'dot', gap: 32, thickness: 1.2, color: 'rgba(150, 120, 180, 0.35)' },
           colors: { paperBackground: '#F3E5F5', textColor: '#4A148C', preset: 'custom' },
-          typography: { fontFamily: 'KaiTi', fontSize: 17, letterSpacing: 0.03, lineHeight: 1.75, paragraphSpacing: 10, pageMargin: { top: 36, right: 46, bottom: 36, left: 66 } },
+          typography: { fontFamily: 'KaiTi', fontSize: 18, letterSpacing: 0.03, lineHeight: 1.75, paragraphSpacing: 10, pageMargin: { top: 36, right: 46, bottom: 36, left: 66 } },
         },
       },
       {
@@ -153,7 +153,7 @@ export class TemplateManager {
           texture: { type: 'none', textureOpacity: 0, textureScale: 1 },
           lines: { pattern: 'dot', gap: 30, thickness: 1.0, color: 'rgba(100, 100, 100, 0.40)' },
           colors: { paperBackground: '#F5F5F5', textColor: '#212121', preset: 'custom' },
-          typography: { fontFamily: 'STKaiti', fontSize: 15, letterSpacing: 0.02, lineHeight: 1.7, paragraphSpacing: 9, pageMargin: { top: 34, right: 44, bottom: 34, left: 64 } },
+          typography: { fontFamily: 'STKaiti', fontSize: 17, letterSpacing: 0.02, lineHeight: 1.7, paragraphSpacing: 9, pageMargin: { top: 34, right: 44, bottom: 34, left: 64 } },
         },
       },
       {
@@ -164,7 +164,7 @@ export class TemplateManager {
           texture: { type: 'none', textureOpacity: 0, textureScale: 1 },
           lines: { pattern: 'dot', gap: 34, thickness: 1.2, color: 'rgba(180, 140, 80, 0.40)' },
           colors: { paperBackground: '#FFF8E1', textColor: '#4A3A1A', preset: 'custom' },
-          typography: { fontFamily: 'STSong', fontSize: 16, letterSpacing: 0.04, lineHeight: 1.75, paragraphSpacing: 11, pageMargin: { top: 38, right: 50, bottom: 38, left: 70 } },
+          typography: { fontFamily: 'STSong', fontSize: 18, letterSpacing: 0.04, lineHeight: 1.75, paragraphSpacing: 11, pageMargin: { top: 38, right: 50, bottom: 38, left: 70 } },
         },
       },
       {
@@ -186,7 +186,7 @@ export class TemplateManager {
           texture: { type: 'none', textureOpacity: 0, textureScale: 1 },
           lines: { pattern: 'vertical', gap: 36, thickness: 0.4, color: 'rgba(120, 100, 80, 0.30)' },
           colors: { paperBackground: '#F5ECD6', textColor: '#3E2723', preset: 'custom' },
-          typography: { fontFamily: 'STSong', fontSize: 17, letterSpacing: 0.06, lineHeight: 1.8, paragraphSpacing: 10, pageMargin: { top: 45, right: 60, bottom: 45, left: 80 } },
+          typography: { fontFamily: 'STSong', fontSize: 18, letterSpacing: 0.06, lineHeight: 1.8, paragraphSpacing: 10, pageMargin: { top: 45, right: 60, bottom: 45, left: 80 } },
         },
       },
       {
@@ -197,7 +197,7 @@ export class TemplateManager {
           texture: { type: 'none', textureOpacity: 0, textureScale: 1 },
           lines: { pattern: 'none', gap: 38, thickness: 0.5, color: 'rgba(0, 0, 0, 0)' },
           colors: { paperBackground: '#FAFAFA', textColor: '#424242', preset: 'custom' },
-          typography: { fontFamily: 'Helvetica Neue', fontSize: 16, letterSpacing: 0.01, lineHeight: 1.65, paragraphSpacing: 12, pageMargin: { top: 30, right: 40, bottom: 30, left: 60 } },
+          typography: { fontFamily: 'Helvetica Neue', fontSize: 18, letterSpacing: 0.01, lineHeight: 1.65, paragraphSpacing: 12, pageMargin: { top: 30, right: 40, bottom: 30, left: 60 } },
         },
       },
     ];
