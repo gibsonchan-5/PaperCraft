@@ -3,26 +3,33 @@
  * PaperCraft - Theme Applier
  */
 
-import type PaperCraftPlugin from '../main';
 import type { PaperCraftSettings } from '../data/PaperData';
 import { CSSGenerator } from './CSSGenerator';
 
+/**
+ * 样式宿主接口（最小依赖）
+ */
+interface StyleHost {
+  addStyle(content: string): HTMLStyleElement | CSSStyleSheet;
+}
+
 export class ThemeApplier {
-  private plugin: PaperCraftPlugin;
+  private plugin: StyleHost;
   private generator: CSSGenerator;
   private styleEl: HTMLStyleElement | null = null;
 
-  constructor(plugin: PaperCraftPlugin) {
+  constructor(plugin: StyleHost) {
     this.plugin = plugin;
     this.generator = new CSSGenerator();
   }
 
   /**
-   * 应用主题到当前活动视图
+   * 应用主题到指定容器
    */
-  apply(settings: PaperCraftSettings): void {
+  apply(settings: PaperCraftSettings, containerEl: HTMLElement): void {
     const css = this.generator.generate(settings);
     this.injectCSS(css);
+    containerEl.addClass('papercraft-active');
   }
 
   /**
@@ -37,13 +44,10 @@ export class ThemeApplier {
    * 注入 CSS（使用 Plugin.addStyle，符合 Obsidian 审核要求）
    */
   private injectCSS(css: string): void {
-    // 移除旧样式
     if (this.styleEl) {
       this.styleEl.remove();
       this.styleEl = null;
     }
-    // 使用 plugin.addStyle 添加新样式（Obsidian 推荐方式）
-    // addStyle 返回 HTMLStyleElement 或 CSSStyleSheet，统一转为 HTMLStyleElement
     const added = this.plugin.addStyle(css);
     if (added instanceof HTMLStyleElement) {
       this.styleEl = added;

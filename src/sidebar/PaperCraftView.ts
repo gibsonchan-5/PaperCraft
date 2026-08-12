@@ -49,6 +49,13 @@ export class PaperCraftView extends ItemView {
 
   async onClose(): Promise<void> {}
 
+  /**
+   * 公共刷新入口：供 main.ts 在设置变更时调用
+   */
+  refresh(): void {
+    this.render();
+  }
+
   private getLang(): Language {
     return this.plugin.settings.language || 'zh-CN';
   }

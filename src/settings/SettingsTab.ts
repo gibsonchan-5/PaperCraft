@@ -532,9 +532,16 @@ export class SettingsTab extends PluginSettingTab {
    */
   private getDraft(): PaperCraftSettings {
     if (!this.draftSettings) {
-      this.draftSettings = JSON.parse(JSON.stringify(this.plugin.settings));
+      this.draftSettings = this.cloneSettings(this.plugin.settings);
     }
     return this.draftSettings;
+  }
+
+  /**
+   * 类型安全地深克隆 settings
+   */
+  private cloneSettings(settings: PaperCraftSettings): PaperCraftSettings {
+    return JSON.parse(JSON.stringify(settings)) as PaperCraftSettings;
   }
 
   /**
@@ -572,7 +579,20 @@ export class SettingsTab extends PluginSettingTab {
     });
     importBtn.addEventListener('click', () => {
       new CSSImportModal(this.app, this.plugin, (importedSettings) => {
-        this.draftSettings = importedSettings;
+        this.draftSettings = this.cloneSettings(DEFAULT_SETTINGS);
+        // 用导入的字段覆盖
+        if (importedSettings.texture) {
+          this.draftSettings.texture = { ...this.draftSettings.texture, ...importedSettings.texture };
+        }
+        if (importedSettings.lines) {
+          this.draftSettings.lines = { ...this.draftSettings.lines, ...importedSettings.lines };
+        }
+        if (importedSettings.colors) {
+          this.draftSettings.colors = { ...this.draftSettings.colors, ...importedSettings.colors };
+        }
+        if (importedSettings.typography) {
+          this.draftSettings.typography = { ...this.draftSettings.typography, ...importedSettings.typography };
+        }
         this.refreshPreview();
         this.display();
       }).open();
@@ -584,7 +604,7 @@ export class SettingsTab extends PluginSettingTab {
       cls: 'papercraft-action-btn',
     });
     resetBtn.addEventListener('click', () => {
-      this.draftSettings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+      this.draftSettings = this.cloneSettings(DEFAULT_SETTINGS);
       this.refreshPreview();
       this.display();
       new Notice('预览已重置');
@@ -596,7 +616,7 @@ export class SettingsTab extends PluginSettingTab {
    */
   private async handleApplyClick(): Promise<void> {
     if (this.draftSettings) {
-      Object.assign(this.plugin.settings, JSON.parse(JSON.stringify(this.draftSettings)));
+      Object.assign(this.plugin.settings, this.cloneSettings(this.draftSettings));
       await this.plugin.saveSettings();
       this.plugin.refreshTheme();
       new Notice('已应用到当前笔记');

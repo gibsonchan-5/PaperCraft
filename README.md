@@ -1,9 +1,17 @@
 # PaperCraft
 
-> 为 Obsidian 打造的稿纸客制化插件 —— 让你的笔记拥有传统稿纸的质感与美感
+> A paper-style customization plugin for Obsidian — give your notes the warmth and beauty of traditional manuscript paper.
+
+PaperCraft brings the warmth of traditional manuscript paper into Obsidian with an intuitive visual panel — what you see is what you get, no CSS knowledge required. Customize paper textures, line patterns, colors, typography, and drawing annotations through a beautiful, interactive UI.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Obsidian](https://img.shields.io/badge/Obsidian-Plugin-7C3AED)](https://obsidian.md)
+
+---
+
+> 为 Obsidian 打造的稿纸客制化插件 —— 让你的笔记拥有传统稿纸的质感与美感
+
+PaperCraft 把传统稿纸的温润质感搬进 Obsidian，用直观的可视化面板替代 CSS 代码——所见即所得，一目了然。
 
 ---
 
