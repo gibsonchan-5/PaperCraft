@@ -360,7 +360,9 @@
 }
 
 /* ==================== 稿纸主题激活（CSS 变量驱动） ==================== */
-.papercraft-active .markdown-source-view .cm-content,
+
+/* 背景色/纹理应用到整块编辑区（.cm-scroller）和预览区（.markdown-preview-view） */
+.papercraft-active .markdown-source-view .cm-scroller,
 .papercraft-active .markdown-preview-view {
   background-color: var(--papercraft-paper-bg, #FFFFFF);
   background-image: var(--papercraft-bg-image, none);
@@ -379,8 +381,9 @@
   transition: background 0.3s ease;
 }
 
+/* 内容区透明（让 scroller 的背景透过来）+ 内层编辑器透明 */
 .papercraft-active .markdown-source-view .cm-editor,
-.papercraft-active .markdown-source-view .cm-scroller,
+.papercraft-active .markdown-source-view .cm-content,
 .papercraft-active .markdown-preview-sizer {
   background: transparent;
 }
@@ -676,7 +679,7 @@
   .papercraft-drawing-layer {
     display: none;
   }
-  .papercraft-active .markdown-source-view .cm-content,
+  .papercraft-active .markdown-source-view .cm-scroller,
   .papercraft-active .markdown-preview-view {
     background: white;
   }
