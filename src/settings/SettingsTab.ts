@@ -3,7 +3,7 @@
  * PaperCraft - Settings Tab with Independent Preview & Template Saving
  */
 
-import { App, PluginSettingTab, Setting, Modal, TextComponent, Notice } from 'obsidian';
+import { App, PluginSettingTab, Setting, Modal, TextComponent, Notice, SettingDefinitionItem } from 'obsidian';
 import type PaperCraftPlugin from '../../main';
 import type { TextureType, LinePattern, PartialTemplateSettings, PaperCraftSettings, PaperTemplate } from '../data/PaperData';
 import { FONT_PRESETS, DEFAULT_SETTINGS } from '../data/Defaults';
@@ -31,7 +31,7 @@ class CSSImportModal extends Modal {
     });
     fileInput.addClass('papercraft-file-input');
 
-    const statusEl = contentEl.createEl('div', { cls: 'papercraft-import-status' });
+    const statusEl = contentEl.createDiv({ cls: 'papercraft-import-status' });
 
     const buttonContainer = contentEl.createDiv({ cls: 'papercraft-modal-buttons' });
 
@@ -328,7 +328,7 @@ export class SettingsTab extends PluginSettingTab {
    * 返回空数组表示使用传统的 display() 方法，
    * 因为本插件设置面板包含实时预览区和复杂的自定义组件，不适合声明式 API
    */
-  getSettingDefinitions(): never[] {
+  getSettingDefinitions(): SettingDefinitionItem[] {
     return [];
   }
 

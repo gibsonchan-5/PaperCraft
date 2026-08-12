@@ -104,7 +104,7 @@ export default class PaperCraftPlugin extends Plugin {
   /**
    * 打开或关闭侧边栏
    */
-  async activateSidebar(): Promise<void> {
+  activateSidebar(): void {
     const existing = this.app.workspace.getLeavesOfType(VIEW_TYPE);
     if (existing.length > 0) {
       existing[0].detach();
@@ -112,10 +112,10 @@ export default class PaperCraftPlugin extends Plugin {
     }
     const leaf = this.app.workspace.getRightLeaf(false);
     if (leaf) {
-      await leaf.setViewState({ type: VIEW_TYPE, active: true });
-      // revealLeaf 在不同版本中签名不同：void 或 Promise<void>
-      // 使用 void 包裹以兼容 minAppVersion 1.4.0
-      void this.app.workspace.revealLeaf(leaf);
+      // setViewState 和 revealLeaf 都是 minAppVersion 1.7.2 后的 API
+      // 使用 .catch() 兼容 fire-and-forget 模式
+      leaf.setViewState({ type: VIEW_TYPE, active: true }).catch(() => {});
+      this.app.workspace.revealLeaf(leaf).catch(() => {});
     }
   }
 

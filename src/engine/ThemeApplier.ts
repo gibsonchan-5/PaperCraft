@@ -33,29 +33,12 @@ export class ThemeApplier {
   }
 
   /**
-   * 在容器上设置 CSS 变量（使用 setCssStyles 代替直接 style 赋值）
+   * 在容器上设置 CSS 变量
    */
   private setCssVariables(containerEl: HTMLElement, variables: Record<string, string>): void {
-    const cssText = Object.entries(variables)
-      .map(([key, value]) => `${key}: ${value}`)
-      .join('; ');
-    containerEl.setCssStyles({
-      '--papercraft-paper-bg': variables['--papercraft-paper-bg'] || '#FFFFFF',
-      '--papercraft-text-color': variables['--papercraft-text-color'] || '#333333',
-      '--papercraft-line-color': variables['--papercraft-line-color'] || 'rgba(100, 100, 100, 0.3)',
-      '--papercraft-font-family': variables['--papercraft-font-family'] || 'inherit',
-      '--papercraft-font-size': variables['--papercraft-font-size'] || '16px',
-      '--papercraft-line-height': variables['--papercraft-line-height'] || '1.6',
-      '--papercraft-letter-spacing': variables['--papercraft-letter-spacing'] || '0em',
-      '--papercraft-bg-image': variables['--papercraft-bg-image'] || 'none',
-      '--papercraft-bg-size': variables['--papercraft-bg-size'] || 'auto',
-      '--papercraft-padding-top': variables['--papercraft-padding-top'] || '0px',
-      '--papercraft-padding-right': variables['--papercraft-padding-right'] || '0px',
-      '--papercraft-padding-bottom': variables['--papercraft-padding-bottom'] || '0px',
-      '--papercraft-padding-left': variables['--papercraft-padding-left'] || '0px',
+    Object.entries(variables).forEach(([key, value]) => {
+      containerEl.style.setProperty(key, value);
     });
-    // 静默使用 cssText 避免 lint 警告
-    void cssText;
   }
 
   /**
