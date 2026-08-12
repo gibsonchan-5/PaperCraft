@@ -3,66 +3,33 @@
  * PaperCraft - Main Entry
  */
 
-import { Plugin } from 'obsidian';
+import { Plugin, MarkdownView } from 'obsidian';
 import type { PaperCraftSettings } from './data/PaperData';
-import { ensureCompleteSettings } from './data/Defaults';
+import { DEFAULT_SETTINGS, ensureCompleteSettings } from './data/Defaults';
 import { TemplateManager } from './templates/TemplateManager';
 import { ThemeApplier } from './engine/ThemeApplier';
 import { PaperCraftView, VIEW_TYPE } from './sidebar/PaperCraftView';
 import { SettingsTab } from './settings/SettingsTab';
 
 export default class PaperCraftPlugin extends Plugin {
-  settings: PaperCraftSettings = this.getDefaultSettings();
+  settings: PaperCraftSettings = { ...DEFAULT_SETTINGS };
   templateManager!: TemplateManager;
   private themeApplier!: ThemeApplier;
 
-  private getDefaultSettings(): PaperCraftSettings {
-    // 从 Defaults 模块获取默认设置
-    return {
-      paperStyle: 'plain',
-      paperColor: '#FFFFFF',
-      lineSpacing: 8,
-      marginTop: 60,
-      marginBottom: 60,
-      marginLeft: 72,
-      marginRight: 72,
-      fontSize: 16,
-      fontFamily: '',
-      textColor: '#333333',
-      showPageNumbers: false,
-      paperTexture: 'none',
-      lineColor: '#CCCCCC',
-      lineWidth: 0.5,
-      gridPattern: 'squares',
-      gridSize: 20,
-      drawing: {
-        enabled: false,
-        drawings: [],
-      },
-      template: '',
-    };
-  }
-
   async onload(): Promise<void> {
-    // 加载设置
     await this.loadSettings();
 
-    // 初始化核心模块
     this.themeApplier = new ThemeApplier(this);
     this.templateManager = new TemplateManager(this);
 
-    // 注册侧边栏视图
     this.registerView(VIEW_TYPE, (leaf) => new PaperCraftView(leaf, this));
 
-    // 添加侧边栏图标
-    this.addRibbonIcon('file-text', 'PaperCraft', () => {
-      this.activateView();
+    this.addRibbonIcon('file-text', 'Open PaperCraft', () => {
+      void this.activateView();
     });
 
-    // 注册设置面板
     this.addSettingTab(new SettingsTab(this.app, this));
 
-    // 应用主题
     this.applyThemeToActiveView();
   }
 
@@ -70,52 +37,30 @@ export default class PaperCraftPlugin extends Plugin {
     this.themeApplier.remove();
   }
 
-  /**
-   * 加载设置（防御性）
-   */
   async loadSettings(): Promise<void> {
     const saved = await this.loadData();
     this.settings = ensureCompleteSettings(saved);
     await this.saveSettings();
   }
 
-  /**
-   * 保存设置
-   */
   async saveSettings(): Promise<void> {
     await this.saveData(this.settings);
   }
 
-  /**
-   * 激活侧边栏视图
-   */
   async activateView(): Promise<void> {
     const { workspace } = this.app;
-    
-    let leaf = workspace.getLeavesOfType(VIEW_TYPE)[0];
-    
-    if (!leaf) {
-      const rightLeaf = workspace.getRightLeaf(false);
-      if (rightLeaf) {
-        await workspace.revealLeaf(rightLeaf);
-        await rightLeaf.setViewState({ type: VIEW_TYPE, active: true });
-        leaf = rightLeaf;
-      }
-    }
-    
+    const leaves = workspace.getLeavesOfType(VIEW_TYPE);
+    const leaf = leaves[0] || workspace.getRightLeaf(false);
     if (leaf) {
-      workspace.revealLeaf(leaf);
+      await leaf.setViewState({ type: VIEW_TYPE, active: true });
+      await workspace.revealLeaf(leaf);
     }
   }
 
-  /**
-   * 应用主题到当前活动的 Markdown 视图
-   */
   applyThemeToActiveView(): void {
     const { workspace } = this.app;
-    const activeLeaf = workspace.getMostRecentLeaf();
-    
-    if (activeLeaf && activeLeaf.view && activeLeaf.view.getViewType() === 'markdown') {
+    const activeView = workspace.getActiveViewOfType(MarkdownView);
+    if (activeView) {
       if (this.settings.drawing?.enabled) {
         this.themeApplier.apply(this.settings);
       } else {
@@ -124,20 +69,13 @@ export default class PaperCraftPlugin extends Plugin {
     }
   }
 
-  /**
-   * 刷新主题（模板应用后调用）
-   */
   refreshTheme(): void {
     this.applyThemeToActiveView();
     this.notifySidebarUpdate();
   }
 
-  /**
-   * 通知侧边栏预览区更新
-   */
   private notifySidebarUpdate(): void {
-    const { workspace } = this.app;
-    const leaves = workspace.getLeavesOfType(VIEW_TYPE);
+    const leaves = this.app.workspace.getLeavesOfType(VIEW_TYPE);
     for (const leaf of leaves) {
       const view = leaf.view;
       if (view instanceof PaperCraftView) {

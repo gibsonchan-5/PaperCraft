@@ -413,8 +413,8 @@ export class DrawingCanvas {
       case 'freehand': {
         svgElement = document.createElementNS(SVG_NS, 'path');
         if (element.points.length < 2) break;
-        const getX = (p: any) => p.x ?? p[0];
-        const getY = (p: any) => p.y ?? p[1];
+        const getX = (p: { x: number; y: number }) => p.x;
+        const getY = (p: { x: number; y: number }) => p.y;
         let d = `M ${getX(element.points[0])} ${getY(element.points[0])}`;
         for (let i = 1; i < element.points.length; i++) {
           d += ` L ${getX(element.points[i])} ${getY(element.points[i])}`;

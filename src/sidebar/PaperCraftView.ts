@@ -34,10 +34,10 @@ export class PaperCraftView extends ItemView {
     this.render();
 
     // 事件委托：只在 onOpen 绑定一次
-    this.contentEl.addEventListener('click', (e) => {
+    this.contentEl.addEventListener('click', (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      const card = target.closest('.papercraft-template-card');
-      if (card && card instanceof HTMLElement) {
+      const card = target.closest('.papercraft-template-card') as HTMLElement | null;
+      if (card) {
         const templateId = card.dataset.templateId;
         if (templateId) {
           this.plugin.templateManager.applyTemplate(templateId);
@@ -145,12 +145,11 @@ export class PaperCraftView extends ItemView {
   private updateActiveCard(templateId: string): void {
     const cards = this.contentEl.querySelectorAll('.papercraft-template-card');
     cards.forEach(card => {
-      if (card instanceof HTMLElement) {
-        if (card.dataset.templateId === templateId) {
-          card.classList.add('active');
-        } else {
-          card.classList.remove('active');
-        }
+      const htmlCard = card as HTMLElement;
+      if (htmlCard.dataset.templateId === templateId) {
+        htmlCard.classList.add('active');
+      } else {
+        htmlCard.classList.remove('active');
       }
     });
   }

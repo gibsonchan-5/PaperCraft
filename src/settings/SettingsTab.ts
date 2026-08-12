@@ -4,8 +4,8 @@
  */
 
 import { App, PluginSettingTab, Setting, Modal, TextComponent, Notice } from 'obsidian';
-import type PaperCraftPlugin from './main';
-import type { TextureType, LinePattern } from './data/PaperData';
+import type PaperCraftPlugin from '../main';
+import type { TextureType, LinePattern, PartialTemplateSettings, PaperCraftSettings } from '../data/PaperData';
 import { FONT_PRESETS } from '../data/Defaults';
 
 /**
@@ -13,9 +13,9 @@ import { FONT_PRESETS } from '../data/Defaults';
  */
 class CSSImportModal extends Modal {
   private plugin: PaperCraftPlugin;
-  private onImport: (settings: any) => void;
+  private onImport: (settings: PartialTemplateSettings) => void;
 
-  constructor(app: App, plugin: PaperCraftPlugin, onImport: (settings: any) => void) {
+  constructor(app: App, plugin: PaperCraftPlugin, onImport: (settings: PartialTemplateSettings) => void) {
     super(app);
     this.plugin = plugin;
     this.onImport = onImport;
@@ -35,31 +35,33 @@ class CSSImportModal extends Modal {
     const statusEl = contentEl.createEl('div', { cls: 'papercraft-import-status' });
 
     const buttonContainer = contentEl.createDiv({ cls: 'papercraft-modal-buttons' });
-    
+
     const cancelBtn = buttonContainer.createEl('button', { text: '取消' });
     cancelBtn.addEventListener('click', () => this.close());
 
     const importBtn = buttonContainer.createEl('button', { text: '导入', cls: 'mod-cta' });
     importBtn.disabled = true;
 
-    let importedSettings: any = null;
+    let importedSettings: PartialTemplateSettings | null = null;
 
-    fileInput.addEventListener('change', async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
+    fileInput.addEventListener('change', async (e: Event) => {
+      const input = e.target as HTMLInputElement;
+      const file = input.files?.[0];
       if (!file) return;
 
       statusEl.textContent = '正在解析 CSS 文件...';
-      
+
       try {
         const text = await file.text();
         importedSettings = this.parseCSS(text);
-        
+
         statusEl.textContent = '✓ 解析成功！可以导入。';
         statusEl.addClass('papercraft-status-success');
         statusEl.removeClass('papercraft-status-error');
         importBtn.disabled = false;
-      } catch (error) {
-        statusEl.textContent = `✗ 解析失败: ${error.message}`;
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : '未知错误';
+        statusEl.textContent = `✗ 解析失败: ${msg}`;
         statusEl.addClass('papercraft-status-error');
         statusEl.removeClass('papercraft-status-success');
         importBtn.disabled = true;
@@ -80,11 +82,8 @@ class CSSImportModal extends Modal {
     contentEl.empty();
   }
 
-  /**
-   * 解析 CSS 文件，提取关键样式属性
-   */
-  private parseCSS(css: string): any {
-    const settings: any = {
+  private parseCSS(css: string): PartialTemplateSettings {
+    const settings: PartialTemplateSettings = {
       texture: { type: 'none', textureOpacity: 0.15, textureScale: 1.0 },
       lines: { pattern: 'none', gap: 38, thickness: 0.5, color: 'rgba(100, 100, 100, 0.3)' },
       colors: { paperBackground: '', textColor: '', preset: 'custom' },
@@ -98,80 +97,65 @@ class CSSImportModal extends Modal {
       }
     };
 
-    // 提取背景色
     const bgMatch = css.match(/background-color\s*:\s*([^;]+);/i);
-    if (bgMatch) {
+    if (bgMatch && settings.colors) {
       settings.colors.paperBackground = this.normalizeColor(bgMatch[1].trim());
     }
 
-    // 提取文字颜色
     const colorMatch = css.match(/(?<!\w)color\s*:\s*([^;]+);/i);
-    if (colorMatch) {
+    if (colorMatch && settings.colors) {
       settings.colors.textColor = this.normalizeColor(colorMatch[1].trim());
     }
 
-    // 提取字体
     const fontMatch = css.match(/font-family\s*:\s*([^;]+);/i);
-    if (fontMatch) {
+    if (fontMatch && settings.typography) {
       settings.typography.fontFamily = fontMatch[1].trim().replace(/['"]/g, '');
     }
 
-    // 提取字号
     const fontSizeMatch = css.match(/font-size\s*:\s*(\d+(?:\.\d+)?)px/i);
-    if (fontSizeMatch) {
+    if (fontSizeMatch && settings.typography) {
       settings.typography.fontSize = parseFloat(fontSizeMatch[1]);
     }
 
-    // 提取行高
     const lineHeightMatch = css.match(/line-height\s*:\s*(\d+(?:\.\d+)?)/i);
-    if (lineHeightMatch) {
+    if (lineHeightMatch && settings.typography) {
       settings.typography.lineHeight = parseFloat(lineHeightMatch[1]);
     }
 
-    // 提取字间距
     const letterSpacingMatch = css.match(/letter-spacing\s*:\s*(\d+(?:\.\d+)?)em/i);
-    if (letterSpacingMatch) {
+    if (letterSpacingMatch && settings.typography) {
       settings.typography.letterSpacing = parseFloat(letterSpacingMatch[1]);
     }
 
-    // 提取内边距（尝试解析为页面边距）
     const paddingMatch = css.match(/padding\s*:\s*([^;]+);/i);
-    if (paddingMatch) {
+    if (paddingMatch && settings.typography) {
       const paddingValues = paddingMatch[1].trim().split(/\s+/).map(v => {
         const match = v.match(/(\d+(?:\.\d+)?)px/);
         return match ? parseFloat(match[1]) : 0;
       });
-      
+
       if (paddingValues.length === 1) {
         settings.typography.pageMargin = {
-          top: paddingValues[0],
-          right: paddingValues[0],
-          bottom: paddingValues[0],
-          left: paddingValues[0]
+          top: paddingValues[0], right: paddingValues[0],
+          bottom: paddingValues[0], left: paddingValues[0]
         };
       } else if (paddingValues.length === 2) {
         settings.typography.pageMargin = {
-          top: paddingValues[0],
-          right: paddingValues[1],
-          bottom: paddingValues[0],
-          left: paddingValues[1]
+          top: paddingValues[0], right: paddingValues[1],
+          bottom: paddingValues[0], left: paddingValues[1]
         };
       } else if (paddingValues.length === 4) {
         settings.typography.pageMargin = {
-          top: paddingValues[0],
-          right: paddingValues[1],
-          bottom: paddingValues[2],
-          left: paddingValues[3]
+          top: paddingValues[0], right: paddingValues[1],
+          bottom: paddingValues[2], left: paddingValues[3]
         };
       }
     }
 
-    // 尝试识别线条模式（基于 repeating-linear-gradient）
     const gradientMatch = css.match(/background-image\s*:\s*repeating-linear-gradient\([^)]+\)/i);
-    if (gradientMatch) {
+    if (gradientMatch && settings.lines) {
       const gradient = gradientMatch[0];
-      
-      // 检测方向判断线条类型
+
       if (gradient.match(/0deg|to top/)) {
         settings.lines.pattern = 'horizontal';
       } else if (gradient.match(/90deg|to right/)) {
@@ -180,17 +164,14 @@ class CSSImportModal extends Modal {
         settings.lines.pattern = 'dot';
       }
 
-      // 提取颜色
       const colorInGradient = gradient.match(/rgba?\([^)]+\)|#[0-9a-fA-F]{3,6}/g);
       if (colorInGradient && colorInGradient.length > 0) {
-        // 取最后一个颜色作为线条颜色（跳过 transparent）
         const lastColor = colorInGradient[colorInGradient.length - 1];
         if (lastColor !== 'transparent') {
           settings.lines.color = this.normalizeColor(lastColor);
         }
       }
 
-      // 尝试提取间距
       const spacingMatch = gradient.match(/transparent\s+\d+px.*?(\d+(?:\.\d+)?)px\s+\d+/);
       if (spacingMatch) {
         settings.lines.gap = parseFloat(spacingMatch[1]);
@@ -200,14 +181,9 @@ class CSSImportModal extends Modal {
     return settings;
   }
 
-  /**
-   * 标准化颜色值（尝试转换为 hex 或保持原样）
-   */
   private normalizeColor(color: string): string {
-    // 移除多余的空格和引号
     color = color.trim().replace(/['"]/g, '');
-    
-    // 如果是 rgb/rgba，尝试转换为 hex
+
     if (color.startsWith('rgb')) {
       const match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
       if (match) {
@@ -217,7 +193,7 @@ class CSSImportModal extends Modal {
         return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
       }
     }
-    
+
     return color;
   }
 }
@@ -279,7 +255,7 @@ class TemplateNameModal extends Modal {
 export class SettingsTab extends PluginSettingTab {
   plugin: PaperCraftPlugin;
   private previewPage: HTMLElement | null = null;
-  private draftSettings: any = null;
+  private draftSettings: PaperCraftSettings | null = null;
   private activeTab: string = 'texture'; // 当前激活的标签页
 
   constructor(app: App, plugin: PaperCraftPlugin) {
@@ -536,7 +512,7 @@ export class SettingsTab extends PluginSettingTab {
   /**
    * 获取或初始化草稿
    */
-  private getDraft(): any {
+  private getDraft(): PaperCraftSettings {
     if (!this.draftSettings) {
       this.draftSettings = JSON.parse(JSON.stringify(this.plugin.settings));
     }

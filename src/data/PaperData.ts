@@ -85,3 +85,19 @@ export interface PaperCraftSettings {
   drawing: DrawingSettings;
   activeTemplate: string;    // 当前激活的模板ID
 }
+
+// 模板设置（部分设置即可）
+export interface PartialTemplateSettings {
+  texture?: Partial<TextureSettings>;
+  lines?: Partial<LineSettings>;
+  colors?: Partial<ColorSettings>;
+  typography?: Partial<TypographySettings>;
+}
+
+// 模板定义
+export interface PaperTemplate {
+  id: string;
+  name: string;
+  category: 'builtin' | 'user';
+  settings: PartialTemplateSettings;
+}
