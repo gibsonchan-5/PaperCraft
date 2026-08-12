@@ -75,7 +75,7 @@ export class PaperCraftView extends ItemView {
       cls: 'papercraft-header-icon-btn',
       attr: { 'aria-label': '清除格式', title: '清除格式（重置当前笔记样式）' },
     });
-    clearBtn.innerHTML = '↺';
+    clearBtn.setText('↺');
     clearBtn.addEventListener('click', async () => {
       this.plugin.settings.lines.pattern = 'none';
       this.plugin.settings.texture.type = 'none';
@@ -100,7 +100,7 @@ export class PaperCraftView extends ItemView {
       cls: 'papercraft-header-icon-btn',
       attr: { 'aria-label': '设置', title: '设置' },
     });
-    settingsBtn.innerHTML = '⚙';
+    settingsBtn.setText('⚙');
     settingsBtn.addEventListener('click', () => {
       const setting = (this.app as any).setting;
       if (setting) {
@@ -182,7 +182,10 @@ export class PaperCraftView extends ItemView {
   private applyThumbnailStyle(thumb: HTMLElement, template: PaperTemplate): void {
     const settings = template.settings;
 
-    thumb.style.backgroundColor = settings.colors?.paperBackground || '#FFFFFF';
+    // 通过 CSS 变量传递背景色
+    thumb.setCssStyles({
+      backgroundColor: settings.colors?.paperBackground || '#FFFFFF',
+    });
 
     const lines = settings.lines;
     if (lines && lines.pattern !== 'none') {
@@ -191,23 +194,36 @@ export class PaperCraftView extends ItemView {
       const gapMinus = gap - thickness;
       const color = lines.color || 'rgba(100, 100, 100, 0.3)';
 
+      let bgImage = '';
+      let bgSize = '';
+      let bgRepeat = '';
+
       switch (lines.pattern) {
         case 'horizontal':
-          thumb.style.backgroundImage = `repeating-linear-gradient(0deg, transparent 0, transparent ${gapMinus}px, ${color} ${gapMinus}px, ${color} ${gap}px)`;
+          bgImage = `repeating-linear-gradient(0deg, transparent 0, transparent ${gapMinus}px, ${color} ${gapMinus}px, ${color} ${gap}px)`;
           break;
         case 'vertical':
-          thumb.style.backgroundImage = `repeating-linear-gradient(90deg, transparent 0, transparent ${gapMinus}px, ${color} ${gapMinus}px, ${color} ${gap}px)`;
+          bgImage = `repeating-linear-gradient(90deg, transparent 0, transparent ${gapMinus}px, ${color} ${gapMinus}px, ${color} ${gap}px)`;
           break;
-        case 'grid':
+        case 'grid': {
           const h = `repeating-linear-gradient(0deg, transparent 0, transparent ${gapMinus}px, ${color} ${gapMinus}px, ${color} ${gap}px)`;
           const v = `repeating-linear-gradient(90deg, transparent 0, transparent ${gapMinus}px, ${color} ${gapMinus}px, ${color} ${gap}px)`;
-          thumb.style.backgroundImage = `${h}, ${v}`;
+          bgImage = `${h}, ${v}`;
           break;
+        }
         case 'dot':
-          thumb.style.backgroundImage = `radial-gradient(circle at center, ${color} 0.5px, transparent 1px)`;
-          thumb.style.backgroundSize = `${gap}px ${gap}px`;
-          thumb.style.backgroundRepeat = 'repeat';
+          bgImage = `radial-gradient(circle at center, ${color} 0.5px, transparent 1px)`;
+          bgSize = `${gap}px ${gap}px`;
+          bgRepeat = 'repeat';
           break;
+      }
+
+      if (bgImage) {
+        thumb.setCssStyles({
+          backgroundImage: bgImage,
+          ...(bgSize && { backgroundSize: bgSize }),
+          ...(bgRepeat && { backgroundRepeat: bgRepeat }),
+        });
       }
     }
   }

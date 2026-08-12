@@ -7,6 +7,27 @@
 
 ---
 
+---
+
+## Why PaperCraft?
+
+Writing for a long time? Tired of staring at white editors? **CSS snippets feel too technical?** PaperCraft brings the warmth of traditional manuscript paper into Obsidian with an intuitive visual panel — what you see is what you get.
+
+### Comparison with CSS Tools
+
+| Feature | Traditional CSS Snippets | PaperCraft |
+|---------|:---:|:---:|
+| Usage | Write/copy CSS code | Visual panel, click to use |
+| Live preview | Save & refresh repeatedly | Instant visual feedback |
+| Template switching | Manual file replacement | One-click sidebar switch |
+| Custom save | Manual file management | Save as template in panel |
+| CSS import | Not supported | Auto-parse CSS to visual params |
+| Learning curve | Requires CSS knowledge | Zero barrier, for everyone |
+
+**Simply put: Professional manuscript effects without writing a single line of CSS.**
+
+---
+
 ## 为什么选择 PaperCraft？
 
 写过文章的人都知道：**白色的编辑器看久了眼睛累，纯 CSS 代码又太劝退。** PaperCraft 把传统稿纸的温润质感搬进 Obsidian，用直观的可视化面板替代 CSS 代码——所见即所得，一目了然。
@@ -86,7 +107,7 @@ PaperCraft 从第一天就为中文写作而设计：
 ### 方法二：从源码构建
 
 ```bash
-git clone https://github.com/your-username/PaperCraft.git
+git clone https://github.com/gibsonchan-5/PaperCraft.git
 cd PaperCraft
 npm install
 npm run build
@@ -186,3 +207,14 @@ papercraft/
 
 - [Obsidian](https://obsidian.md/) —— 强大的知识管理工具
 - 所有为中文字体生态做出贡献的开源项目
+
+---
+
+## License
+
+[MIT License](LICENSE)
+
+## Acknowledgments
+
+- [Obsidian](https://obsidian.md/) - The powerful knowledge management tool
+- All open-source projects contributing to the Chinese font ecosystem

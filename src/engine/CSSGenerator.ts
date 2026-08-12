@@ -43,16 +43,16 @@ export class CSSGenerator {
 .workspace-leaf-content[data-type="markdown"] .cm-editor,
 .workspace-leaf-content[data-type="markdown"] .cm-content,
 .workspace-leaf-content[data-type="markdown"] .markdown-preview-sizer {
-  background: transparent !important;
+  background: transparent;
 }
 
 /* 表格边框保护 */
 .workspace-leaf-content[data-type="markdown"] table {
-  border-color: var(--background-modifier-border) !important;
+  border-color: var(--background-modifier-border);
 }
 .workspace-leaf-content[data-type="markdown"] td,
 .workspace-leaf-content[data-type="markdown"] th {
-  border-color: var(--background-modifier-border) !important;
+  border-color: var(--background-modifier-border);
 }
 
 /* 排版 */
@@ -232,19 +232,19 @@ export class CSSGenerator {
     const rules: string[] = [];
 
     if (typography.fontFamily) {
-      rules.push(`font-family: ${typography.fontFamily}, var(--font-text) !important;`);
+      rules.push(`font-family: ${typography.fontFamily}, var(--font-text);`);
     }
     if (typography.fontSize !== 16) {
-      rules.push(`font-size: ${typography.fontSize}px !important;`);
+      rules.push(`font-size: ${typography.fontSize}px;`);
     }
     if (typography.letterSpacing !== 0) {
-      rules.push(`letter-spacing: ${typography.letterSpacing}em !important;`);
+      rules.push(`letter-spacing: ${typography.letterSpacing}em;`);
     }
     if (typography.lineHeight !== 1.6) {
-      rules.push(`line-height: ${typography.lineHeight} !important;`);
+      rules.push(`line-height: ${typography.lineHeight};`);
     }
     if (typography.paragraphSpacing !== 0) {
-      rules.push(`margin-bottom: ${typography.paragraphSpacing}px !important;`);
+      rules.push(`margin-bottom: ${typography.paragraphSpacing}px;`);
     }
     if (
       typography.pageMargin.top !== 0 ||
@@ -253,7 +253,7 @@ export class CSSGenerator {
       typography.pageMargin.left !== 0
     ) {
       rules.push(
-        `padding: ${typography.pageMargin.top}px ${typography.pageMargin.right}px ${typography.pageMargin.bottom}px ${typography.pageMargin.left}px !important;`
+        `padding: ${typography.pageMargin.top}px ${typography.pageMargin.right}px ${typography.pageMargin.bottom}px ${typography.pageMargin.left}px;`
       );
     }
 
@@ -271,9 +271,9 @@ export class CSSGenerator {
 .workspace-leaf-content[data-type="markdown"] .cm-editor,
 .workspace-leaf-content[data-type="markdown"] .cm-content,
 .workspace-leaf-content[data-type="markdown"] .markdown-preview-sizer {
-  background: none !important;
-  background-image: none !important;
-  color: var(--text-normal) !important;
+  background: none;
+  background-image: none;
+  color: var(--text-normal);
 }
 `;
   }

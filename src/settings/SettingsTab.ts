@@ -5,7 +5,7 @@
 
 import { App, PluginSettingTab, Setting, Modal, TextComponent, Notice } from 'obsidian';
 import type PaperCraftPlugin from './main';
-import type { TextureType, LinePattern, ColorPreset } from './data/PaperData';
+import type { TextureType, LinePattern } from './data/PaperData';
 import { FONT_PRESETS } from '../data/Defaults';
 
 /**
@@ -30,11 +30,9 @@ class CSSImportModal extends Modal {
       type: 'file',
       accept: '.css',
     });
-    fileInput.style.width = '100%';
-    fileInput.style.marginBottom = '16px';
+    fileInput.addClass('papercraft-file-input');
 
     const statusEl = contentEl.createEl('div', { cls: 'papercraft-import-status' });
-    statusEl.style.marginBottom = '16px';
 
     const buttonContainer = contentEl.createDiv({ cls: 'papercraft-modal-buttons' });
     
@@ -57,11 +55,13 @@ class CSSImportModal extends Modal {
         importedSettings = this.parseCSS(text);
         
         statusEl.textContent = '✓ 解析成功！可以导入。';
-        statusEl.style.color = 'var(--text-success)';
+        statusEl.addClass('papercraft-status-success');
+        statusEl.removeClass('papercraft-status-error');
         importBtn.disabled = false;
       } catch (error) {
         statusEl.textContent = `✗ 解析失败: ${error.message}`;
-        statusEl.style.color = 'var(--text-error)';
+        statusEl.addClass('papercraft-status-error');
+        statusEl.removeClass('papercraft-status-success');
         importBtn.disabled = true;
       }
     });
@@ -242,8 +242,7 @@ class TemplateNameModal extends Modal {
     const inputContainer = contentEl.createDiv({ cls: 'papercraft-modal-input' });
     const textInput = new TextComponent(inputContainer);
     textInput.setPlaceholder('输入模板名称...');
-    textInput.inputEl.style.width = '100%';
-    textInput.inputEl.style.marginBottom = '16px';
+    textInput.inputEl.addClass('papercraft-text-input');
 
     const buttonContainer = contentEl.createDiv({ cls: 'papercraft-modal-buttons' });
     
@@ -372,10 +371,10 @@ export class SettingsTab extends PluginSettingTab {
 
     new Setting(container)
       .setName('纹理透明度')
+      .setDesc('控制纹理的可见程度')
       .addSlider(slider => {
         slider.setLimits(0, 1, 0.01);
         slider.setValue(this.getDraft().texture.textureOpacity);
-        slider.setDynamicTooltip();
         slider.onChange((value) => {
           this.getDraft().texture.textureOpacity = value;
           this.refreshPreview();
@@ -384,10 +383,10 @@ export class SettingsTab extends PluginSettingTab {
 
     new Setting(container)
       .setName('纹理缩放')
+      .setDesc('调整纹理的大小比例')
       .addSlider(slider => {
         slider.setLimits(0.5, 2, 0.1);
         slider.setValue(this.getDraft().texture.textureScale);
-        slider.setDynamicTooltip();
         slider.onChange((value) => {
           this.getDraft().texture.textureScale = value;
           this.refreshPreview();
@@ -426,10 +425,10 @@ export class SettingsTab extends PluginSettingTab {
 
     new Setting(container)
       .setName('线条粗细 (px)')
+      .setDesc('调整线条的粗细')
       .addSlider(slider => {
         slider.setLimits(0.1, 2, 0.1);
         slider.setValue(this.getDraft().lines.thickness);
-        slider.setDynamicTooltip();
         slider.onChange((value) => {
           this.getDraft().lines.thickness = value;
           this.refreshPreview();
@@ -511,10 +510,10 @@ export class SettingsTab extends PluginSettingTab {
 
     new Setting(container)
       .setName('字间距 (em)')
+      .setDesc('调整字符之间的间距')
       .addSlider(slider => {
         slider.setLimits(0, 0.5, 0.01);
         slider.setValue(this.getDraft().typography.letterSpacing);
-        slider.setDynamicTooltip();
         slider.onChange((value) => {
           this.getDraft().typography.letterSpacing = value;
           this.refreshPreview();
@@ -523,10 +522,10 @@ export class SettingsTab extends PluginSettingTab {
 
     new Setting(container)
       .setName('行高')
+      .setDesc('调整行与行之间的间距')
       .addSlider(slider => {
         slider.setLimits(1, 3, 0.1);
         slider.setValue(this.getDraft().typography.lineHeight);
-        slider.setDynamicTooltip();
         slider.onChange((value) => {
           this.getDraft().typography.lineHeight = value;
           this.refreshPreview();
@@ -655,10 +654,9 @@ export class SettingsTab extends PluginSettingTab {
     if (!this.previewPage) return;
 
     const draft = this.getDraft();
-    const style = this.previewPage.style;
 
     // 背景色
-    style.backgroundColor = draft.colors.paperBackground || '#FFFFFF';
+    const bgColor = draft.colors.paperBackground || '#FFFFFF';
 
     // 纹理层
     const allLayers: string[] = [];
@@ -739,29 +737,40 @@ export class SettingsTab extends PluginSettingTab {
       }
     }
 
-    if (allLayers.length > 0) {
-      style.backgroundImage = allLayers.join(', ');
-      style.backgroundSize = allSizes.join(', ');
-      style.backgroundRepeat = allRepeats.join(', ');
-    } else {
-      style.backgroundImage = 'none';
-    }
+    const backgroundImage = allLayers.length > 0 ? allLayers.join(', ') : 'none';
+    const backgroundSize = allSizes.length > 0 ? allSizes.join(', ') : '';
+    const backgroundRepeat = allRepeats.length > 0 ? allRepeats.join(', ') : '';
 
     // 边距（缩放）
     const scale = 0.5;
     const pm = draft.typography.pageMargin;
-    style.paddingTop = `${Math.round((pm?.top || 0) * scale)}px`;
-    style.paddingRight = `${Math.round((pm?.right || 0) * scale)}px`;
-    style.paddingBottom = `${Math.round((pm?.bottom || 0) * scale)}px`;
-    style.paddingLeft = `${Math.round((pm?.left || 0) * scale)}px`;
+    const paddingTop = `${Math.round((pm?.top || 0) * scale)}px`;
+    const paddingRight = `${Math.round((pm?.right || 0) * scale)}px`;
+    const paddingBottom = `${Math.round((pm?.bottom || 0) * scale)}px`;
+    const paddingLeft = `${Math.round((pm?.left || 0) * scale)}px`;
 
     // 字体
-    style.fontFamily = draft.typography.fontFamily || '';
+    const fontFamily = draft.typography.fontFamily || '';
     const fontSize = Math.max(10, Math.round((draft.typography.fontSize || 16) * 0.7));
-    style.fontSize = `${fontSize}px`;
-    style.lineHeight = String(draft.typography.lineHeight || 1.65);
-    style.letterSpacing = `${draft.typography.letterSpacing || 0}em`;
-    style.color = draft.colors.textColor || '#333333';
+    const lineHeight = String(draft.typography.lineHeight || 1.65);
+    const letterSpacing = `${draft.typography.letterSpacing || 0}em`;
+    const color = draft.colors.textColor || '#333333';
+
+    this.previewPage.setCssStyles({
+      backgroundColor: bgColor,
+      backgroundImage,
+      backgroundSize,
+      backgroundRepeat,
+      paddingTop,
+      paddingRight,
+      paddingBottom,
+      paddingLeft,
+      fontFamily,
+      fontSize: `${fontSize}px`,
+      lineHeight,
+      letterSpacing,
+      color,
+    });
   }
 
   /**

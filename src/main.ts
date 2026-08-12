@@ -5,25 +5,50 @@
 
 import { Plugin } from 'obsidian';
 import type { PaperCraftSettings } from './data/PaperData';
-import { DEFAULT_SETTINGS, ensureCompleteSettings } from './data/Defaults';
+import { ensureCompleteSettings } from './data/Defaults';
 import { TemplateManager } from './templates/TemplateManager';
 import { ThemeApplier } from './engine/ThemeApplier';
-import { PaperCraftView, VIEW_TYPE } from './src/sidebar/PaperCraftView';
+import { PaperCraftView, VIEW_TYPE } from './sidebar/PaperCraftView';
 import { SettingsTab } from './settings/SettingsTab';
 
 export default class PaperCraftPlugin extends Plugin {
-  settings: PaperCraftSettings = DEFAULT_SETTINGS;
+  settings: PaperCraftSettings = this.getDefaultSettings();
   templateManager!: TemplateManager;
   private themeApplier!: ThemeApplier;
 
-  async onload(): Promise<void> {
-    console.log('[PaperCraft] Loading plugin...');
+  private getDefaultSettings(): PaperCraftSettings {
+    // 从 Defaults 模块获取默认设置
+    return {
+      paperStyle: 'plain',
+      paperColor: '#FFFFFF',
+      lineSpacing: 8,
+      marginTop: 60,
+      marginBottom: 60,
+      marginLeft: 72,
+      marginRight: 72,
+      fontSize: 16,
+      fontFamily: '',
+      textColor: '#333333',
+      showPageNumbers: false,
+      paperTexture: 'none',
+      lineColor: '#CCCCCC',
+      lineWidth: 0.5,
+      gridPattern: 'squares',
+      gridSize: 20,
+      drawing: {
+        enabled: false,
+        drawings: [],
+      },
+      template: '',
+    };
+  }
 
+  async onload(): Promise<void> {
     // 加载设置
     await this.loadSettings();
 
     // 初始化核心模块
-    this.themeApplier = new ThemeApplier();
+    this.themeApplier = new ThemeApplier(this);
     this.templateManager = new TemplateManager(this);
 
     // 注册侧边栏视图
@@ -39,14 +64,10 @@ export default class PaperCraftPlugin extends Plugin {
 
     // 应用主题
     this.applyThemeToActiveView();
-
-    console.log('[PaperCraft] Plugin loaded successfully');
   }
 
-  onunload(): Promise<void> {
-    console.log('[PaperCraft] Unloading plugin...');
+  onunload(): void {
     this.themeApplier.remove();
-    return Promise.resolve();
   }
 
   /**
@@ -76,6 +97,7 @@ export default class PaperCraftPlugin extends Plugin {
     if (!leaf) {
       const rightLeaf = workspace.getRightLeaf(false);
       if (rightLeaf) {
+        await workspace.revealLeaf(rightLeaf);
         await rightLeaf.setViewState({ type: VIEW_TYPE, active: true });
         leaf = rightLeaf;
       }
@@ -119,7 +141,7 @@ export default class PaperCraftPlugin extends Plugin {
     for (const leaf of leaves) {
       const view = leaf.view;
       if (view instanceof PaperCraftView) {
-        (view as any).refreshPreview();
+        view.refreshPreview();
       }
     }
   }

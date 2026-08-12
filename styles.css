@@ -179,11 +179,11 @@
 }
 
 /* 清除格式按钮 */
-.papercraft-clear-btn {
-  background: var(--background-modifier-error) !important;
-  color: #fff !important;
-  border: none !important;
-  font-weight: 600 !important;
+.papercraft-clear-btn.papercraft-clear-btn {
+  background: var(--background-modifier-error);
+  color: #fff;
+  border: none;
+  font-weight: 600;
 }
 
 .papercraft-clear-btn:hover {
@@ -276,6 +276,15 @@
 .papercraft-drawing-layer.active {
   pointer-events: auto;
   cursor: crosshair;
+}
+
+.papercraft-drawing-inactive {
+  pointer-events: none;
+  cursor: default;
+}
+
+.papercraft-drawing-container {
+  position: relative;
 }
 
 /* ==================== 绘图工具栏 ==================== */
@@ -511,6 +520,25 @@
   background: var(--interactive-accent-hover);
 }
 
+/* ==================== 设置面板组件 ==================== */
+.papercraft-file-input {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.papercraft-status-success {
+  color: var(--text-success);
+}
+
+.papercraft-status-error {
+  color: var(--text-error);
+}
+
+.papercraft-text-input {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
 /* ==================== 版本信息 ==================== */
 .papercraft-version {
   text-align: center;
@@ -523,10 +551,10 @@
 /* ==================== 打印 ==================== */
 @media print {
   .papercraft-drawing-layer {
-    display: none !important;
+    display: none;
   }
   .papercraft-active .markdown-source-view .cm-content,
   .papercraft-active .markdown-preview-view {
-    background: white !important;
+    background: white;
   }
 }

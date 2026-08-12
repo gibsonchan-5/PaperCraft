@@ -1,6 +1,6 @@
 import { MarkdownView } from 'obsidian';
 import type PaperCraftPlugin from '../../main';
-import { DrawingElement, DrawingLayer } from '../data/PaperData';
+import type { DrawingElement } from '../data/PaperData';
 
 /**
  * 绘图工具类型
@@ -17,13 +17,14 @@ export interface ToolConfig {
   opacity: number;
 }
 
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
 /**
  * 绘图模块 - 在稿纸上提供 SVG 绘图能力
  */
 export class DrawingCanvas {
   private plugin: PaperCraftPlugin;
   private svgEl: SVGSVGElement | null = null;
-  private currentLayer: string = 'layer-1';
   private activeTool: ToolType = 'select';
   private toolConfig: ToolConfig = {
     type: 'select',
@@ -63,7 +64,6 @@ export class DrawingCanvas {
   attachToView(view: MarkdownView) {
     if (!this.plugin.settings.drawing.enabled) return;
 
-    // 移除已有的画布
     this.detach();
 
     const container = view.containerEl;
@@ -72,26 +72,22 @@ export class DrawingCanvas {
     if (!editorEl) return;
 
     // 创建 SVG 覆盖层
-    this.svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    this.svgEl = document.createElementNS(SVG_NS, 'svg') as SVGSVGElement;
     this.svgEl.classList.add('papercraft-drawing-layer');
     this.svgEl.setAttribute('width', '100%');
     this.svgEl.setAttribute('height', '100%');
-    this.svgEl.style.position = 'absolute';
-    this.svgEl.style.top = '0';
-    this.svgEl.style.left = '0';
-    this.svgEl.style.pointerEvents = 'none';
-    this.svgEl.style.zIndex = '10';
 
-    // 设置容器为相对定位
-    if (editorEl instanceof HTMLElement) {
-      editorEl.style.position = 'relative';
-      editorEl.appendChild(this.svgEl);
+    // 通过 CSS class 控制样式，不直接设置 style
+    if (this.activeTool === 'select') {
+      this.svgEl.classList.add('papercraft-drawing-inactive');
+    } else {
+      this.svgEl.classList.remove('papercraft-drawing-inactive');
     }
 
-    // 加载已保存的绘图数据
-    this.loadDrawingData();
+    editorEl.addClass('papercraft-drawing-container');
+    editorEl.appendChild(this.svgEl);
 
-    // 绑定事件
+    this.loadDrawingData();
     this.bindEvents(editorEl);
   }
 
@@ -122,29 +118,22 @@ export class DrawingCanvas {
     }
     this.toolConfig.type = tool;
 
-    // 更新 SVG 的交互状态
     if (this.svgEl) {
-      this.svgEl.style.pointerEvents = tool === 'select' ? 'none' : 'auto';
-      this.svgEl.style.cursor = this.getCursorForTool(tool);
-    }
-  }
-
-  /**
-   * 获取工具对应的鼠标样式
-   */
-  private getCursorForTool(tool: ToolType): string {
-    switch (tool) {
-      case 'select': return 'default';
-      case 'eraser': return 'not-allowed';
-      default: return 'crosshair';
+      if (tool === 'select') {
+        this.svgEl.classList.add('papercraft-drawing-inactive');
+      } else {
+        this.svgEl.classList.remove('papercraft-drawing-inactive');
+      }
+      // cursor 通过 CSS class 控制
+      this.svgEl.dataset.tool = tool;
     }
   }
 
   /**
    * 绑定鼠标事件
    */
-  private bindEvents(editorEl: Element | null) {
-    if (!editorEl || !this.svgEl) return;
+  private bindEvents(editorEl: Element) {
+    if (!this.svgEl) return;
 
     editorEl.addEventListener('mousedown', this.handleMouseDown.bind(this));
     editorEl.addEventListener('mousemove', this.handleMouseMove.bind(this));
@@ -162,10 +151,10 @@ export class DrawingCanvas {
     this.startPoint = [e.clientX - rect.left, e.clientY - rect.top];
     this.currentPath = [this.startPoint];
 
-    // 创建临时元素
-    this.currentElement = this.createTempElement();
-    if (this.currentElement) {
-      this.svgEl!.appendChild(this.currentElement);
+    const tempEl = this.createTempElement();
+    if (tempEl) {
+      this.currentElement = tempEl;
+      this.svgEl!.appendChild(tempEl);
     }
   }
 
@@ -196,7 +185,6 @@ export class DrawingCanvas {
     const rect = this.svgEl.getBoundingClientRect();
     const endPoint: [number, number] = [e.clientX - rect.left, e.clientY - rect.top];
 
-    // 保存绘制的元素
     if (this.currentElement) {
       const element = this.createElementData(endPoint);
       if (element) {
@@ -216,7 +204,7 @@ export class DrawingCanvas {
 
     switch (this.activeTool) {
       case 'line': {
-        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        const line = document.createElementNS(SVG_NS, 'line');
         line.setAttribute('stroke', strokeColor);
         line.setAttribute('stroke-width', String(strokeWidth));
         line.setAttribute('opacity', String(opacity));
@@ -227,7 +215,7 @@ export class DrawingCanvas {
         return line;
       }
       case 'rect': {
-        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        const rect = document.createElementNS(SVG_NS, 'rect');
         rect.setAttribute('stroke', strokeColor);
         rect.setAttribute('stroke-width', String(strokeWidth));
         rect.setAttribute('fill', 'none');
@@ -235,7 +223,7 @@ export class DrawingCanvas {
         return rect;
       }
       case 'circle': {
-        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        const circle = document.createElementNS(SVG_NS, 'circle');
         circle.setAttribute('stroke', strokeColor);
         circle.setAttribute('stroke-width', String(strokeWidth));
         circle.setAttribute('fill', 'none');
@@ -243,7 +231,7 @@ export class DrawingCanvas {
         return circle;
       }
       case 'freehand': {
-        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        const path = document.createElementNS(SVG_NS, 'path');
         path.setAttribute('stroke', strokeColor);
         path.setAttribute('stroke-width', String(strokeWidth));
         path.setAttribute('fill', 'none');
@@ -258,7 +246,7 @@ export class DrawingCanvas {
   }
 
   /**
-   * 更新形状元素（线、矩形、圆形）
+   * 更新形状元素
    */
   private updateShapeElement(currentPoint: [number, number]) {
     if (!this.currentElement) return;
@@ -274,12 +262,12 @@ export class DrawingCanvas {
         const rect = this.currentElement as SVGRectElement;
         const x = Math.min(this.startPoint[0], currentPoint[0]);
         const y = Math.min(this.startPoint[1], currentPoint[1]);
-        const width = Math.abs(currentPoint[0] - this.startPoint[0]);
-        const height = Math.abs(currentPoint[1] - this.startPoint[1]);
+        const w = Math.abs(currentPoint[0] - this.startPoint[0]);
+        const h = Math.abs(currentPoint[1] - this.startPoint[1]);
         rect.setAttribute('x', String(x));
         rect.setAttribute('y', String(y));
-        rect.setAttribute('width', String(width));
-        rect.setAttribute('height', String(height));
+        rect.setAttribute('width', String(w));
+        rect.setAttribute('height', String(h));
         break;
       }
       case 'circle': {
@@ -318,20 +306,20 @@ export class DrawingCanvas {
         return {
           type: 'line',
           points: [this.startPoint, endPoint],
-          strokeColor: this.toolConfig.strokeColor,
-          strokeWidth: this.toolConfig.strokeWidth,
+          color: this.toolConfig.strokeColor,
+          lineWidth: this.toolConfig.strokeWidth,
           opacity: this.toolConfig.opacity,
         };
       case 'rect': {
         const x = Math.min(this.startPoint[0], endPoint[0]);
         const y = Math.min(this.startPoint[1], endPoint[1]);
-        const width = Math.abs(endPoint[0] - this.startPoint[0]);
-        const height = Math.abs(endPoint[1] - this.startPoint[1]);
+        const w = Math.abs(endPoint[0] - this.startPoint[0]);
+        const h = Math.abs(endPoint[1] - this.startPoint[1]);
         return {
           type: 'rect',
-          points: [[x, y], [x + width, y + height]],
-          strokeColor: this.toolConfig.strokeColor,
-          strokeWidth: this.toolConfig.strokeWidth,
+          points: [[x, y], [x + w, y + h]],
+          color: this.toolConfig.strokeColor,
+          lineWidth: this.toolConfig.strokeWidth,
           opacity: this.toolConfig.opacity,
         };
       }
@@ -342,17 +330,17 @@ export class DrawingCanvas {
         return {
           type: 'circle',
           points: [this.startPoint, [radius, 0]],
-          strokeColor: this.toolConfig.strokeColor,
-          strokeWidth: this.toolConfig.strokeWidth,
+          color: this.toolConfig.strokeColor,
+          lineWidth: this.toolConfig.strokeWidth,
           opacity: this.toolConfig.opacity,
         };
       }
       case 'freehand':
         return {
           type: 'freehand',
-          points: this.currentPath as [number, number][],
-          strokeColor: this.toolConfig.strokeColor,
-          strokeWidth: this.toolConfig.strokeWidth,
+          points: this.currentPath as Array<{x: number; y: number}>,
+          color: this.toolConfig.strokeColor,
+          lineWidth: this.toolConfig.strokeWidth,
           opacity: this.toolConfig.opacity,
         };
       default:
@@ -361,14 +349,14 @@ export class DrawingCanvas {
   }
 
   /**
-   * 保存元素到当前图层
+   * 保存元素
    */
   private saveElement(element: DrawingElement) {
-    const layer = this.plugin.settings.drawing.layers.find(l => l.id === this.currentLayer);
-    if (layer) {
-      layer.elements.push(element);
-      this.plugin.saveSettings();
-    }
+    if (!element.type) return;
+    const id = `el-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    element.id = id;
+    this.plugin.settings.drawing.drawings.push(element);
+    this.plugin.saveSettings();
   }
 
   /**
@@ -377,17 +365,12 @@ export class DrawingCanvas {
   private loadDrawingData() {
     if (!this.svgEl) return;
 
-    // 清空现有元素
     while (this.svgEl.firstChild) {
       this.svgEl.removeChild(this.svgEl.firstChild);
     }
 
-    // 渲染所有可见图层的元素
-    for (const layer of this.plugin.settings.drawing.layers) {
-      if (!layer.visible) continue;
-      for (const element of layer.elements) {
-        this.renderElement(element);
-      }
+    for (const element of this.plugin.settings.drawing.drawings) {
+      this.renderElement(element);
     }
   }
 
@@ -401,38 +384,40 @@ export class DrawingCanvas {
 
     switch (element.type) {
       case 'line': {
-        svgElement = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        svgElement.setAttribute('x1', String(element.points[0][0]));
-        svgElement.setAttribute('y1', String(element.points[0][1]));
-        svgElement.setAttribute('x2', String(element.points[1][0]));
-        svgElement.setAttribute('y2', String(element.points[1][1]));
+        svgElement = document.createElementNS(SVG_NS, 'line');
+        svgElement.setAttribute('x1', String(element.points[0].x ?? (element.points[0] as any)[0]));
+        svgElement.setAttribute('y1', String(element.points[0].y ?? (element.points[0] as any)[1]));
+        svgElement.setAttribute('x2', String(element.points[1].x ?? (element.points[1] as any)[0]));
+        svgElement.setAttribute('y2', String(element.points[1].y ?? (element.points[1] as any)[1]));
         break;
       }
       case 'rect': {
-        svgElement = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        const x = element.points[0][0];
-        const y = element.points[0][1];
-        const width = element.points[1][0] - x;
-        const height = element.points[1][1] - y;
-        svgElement.setAttribute('x', String(x));
-        svgElement.setAttribute('y', String(y));
-        svgElement.setAttribute('width', String(width));
-        svgElement.setAttribute('height', String(height));
+        svgElement = document.createElementNS(SVG_NS, 'rect');
+        const rx = element.points[0].x ?? (element.points[0] as any)[0];
+        const ry = element.points[0].y ?? (element.points[0] as any)[1];
+        const rw = (element.points[1].x ?? (element.points[1] as any)[0]) - rx;
+        const rh = (element.points[1].y ?? (element.points[1] as any)[1]) - ry;
+        svgElement.setAttribute('x', String(rx));
+        svgElement.setAttribute('y', String(ry));
+        svgElement.setAttribute('width', String(rw));
+        svgElement.setAttribute('height', String(rh));
         break;
       }
       case 'circle': {
-        svgElement = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        svgElement.setAttribute('cx', String(element.points[0][0]));
-        svgElement.setAttribute('cy', String(element.points[0][1]));
-        svgElement.setAttribute('r', String(element.points[1][0]));
+        svgElement = document.createElementNS(SVG_NS, 'circle');
+        svgElement.setAttribute('cx', String(element.points[0].x ?? (element.points[0] as any)[0]));
+        svgElement.setAttribute('cy', String(element.points[0].y ?? (element.points[0] as any)[1]));
+        svgElement.setAttribute('r', String(element.points[1].x ?? (element.points[1] as any)[0]));
         break;
       }
       case 'freehand': {
-        svgElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        svgElement = document.createElementNS(SVG_NS, 'path');
         if (element.points.length < 2) break;
-        let d = `M ${element.points[0][0]} ${element.points[0][1]}`;
+        const getX = (p: any) => p.x ?? p[0];
+        const getY = (p: any) => p.y ?? p[1];
+        let d = `M ${getX(element.points[0])} ${getY(element.points[0])}`;
         for (let i = 1; i < element.points.length; i++) {
-          d += ` L ${element.points[i][0]} ${element.points[i][1]}`;
+          d += ` L ${getX(element.points[i])} ${getY(element.points[i])}`;
         }
         svgElement.setAttribute('d', d);
         break;
@@ -440,8 +425,8 @@ export class DrawingCanvas {
     }
 
     if (svgElement) {
-      svgElement.setAttribute('stroke', element.strokeColor);
-      svgElement.setAttribute('stroke-width', String(element.strokeWidth));
+      svgElement.setAttribute('stroke', element.color);
+      svgElement.setAttribute('stroke-width', String(element.lineWidth));
       svgElement.setAttribute('opacity', String(element.opacity));
       svgElement.setAttribute('fill', 'none');
       svgElement.setAttribute('stroke-linecap', 'round');
@@ -451,54 +436,21 @@ export class DrawingCanvas {
   }
 
   /**
-   * 添加红栏快捷功能
-   */
-  addRedBar(position: 'left' | 'right' = 'right', width: number = 100) {
-    const element: DrawingElement = {
-      type: 'line',
-      points: position === 'right'
-        ? [[-width, 0], [-width, 9999]]
-        : [[width, 0], [width, 9999]],
-      strokeColor: '#E24B4A',
-      strokeWidth: 1.5,
-      opacity: 0.7,
-    };
-
-    const layer = this.plugin.settings.drawing.layers.find(l => l.id === 'redbar');
-    if (layer) {
-      layer.elements = [element];
-    } else {
-      this.plugin.settings.drawing.layers.push({
-        id: 'redbar',
-        name: '红栏',
-        visible: true,
-        elements: [element],
-      });
-    }
-
-    this.plugin.saveSettings();
-    this.loadDrawingData();
-  }
-
-  /**
-   * 清除当前图层
+   * 清除当前绘图
    */
   clearLayer() {
-    const layer = this.plugin.settings.drawing.layers.find(l => l.id === this.currentLayer);
-    if (layer) {
-      layer.elements = [];
-      this.plugin.saveSettings();
-      this.loadDrawingData();
-    }
+    this.plugin.settings.drawing.drawings = [];
+    this.plugin.saveSettings();
+    this.loadDrawingData();
   }
 
   /**
    * 撤销最后一个元素
    */
   undo() {
-    const layer = this.plugin.settings.drawing.layers.find(l => l.id === this.currentLayer);
-    if (layer && layer.elements.length > 0) {
-      layer.elements.pop();
+    const drawings = this.plugin.settings.drawing.drawings;
+    if (drawings.length > 0) {
+      drawings.pop();
       this.plugin.saveSettings();
       this.loadDrawingData();
     }

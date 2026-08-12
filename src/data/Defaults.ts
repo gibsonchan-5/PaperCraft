@@ -5,7 +5,7 @@
 
 import type { PaperCraftSettings } from '../data/PaperData';
 
-export const PLUGIN_VERSION = '1.0.0';
+export const PLUGIN_VERSION = '1.0.1';
 
 export const DEFAULT_SETTINGS: PaperCraftSettings = {
   version: PLUGIN_VERSION,

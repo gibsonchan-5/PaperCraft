@@ -3,14 +3,17 @@
  * PaperCraft - Theme Applier
  */
 
+import type PaperCraftPlugin from '../main';
 import type { PaperCraftSettings } from '../data/PaperData';
 import { CSSGenerator } from './CSSGenerator';
 
 export class ThemeApplier {
-  private styleEl: HTMLStyleElement | null = null;
+  private plugin: PaperCraftPlugin;
   private generator: CSSGenerator;
+  private styleEl: HTMLStyleElement | null = null;
 
-  constructor() {
+  constructor(plugin: PaperCraftPlugin) {
+    this.plugin = plugin;
     this.generator = new CSSGenerator();
   }
 
@@ -31,15 +34,17 @@ export class ThemeApplier {
   }
 
   /**
-   * 注入 CSS 到文档
+   * 注入 CSS（使用 Plugin.addStyle，符合 Obsidian 审核要求）
    */
   private injectCSS(css: string): void {
-    if (!this.styleEl) {
-      this.styleEl = document.createElement('style');
-      this.styleEl.id = 'papercraft-theme';
-      document.head.appendChild(this.styleEl);
+    // 移除旧样式
+    if (this.styleEl) {
+      this.styleEl.remove();
+      this.styleEl = null;
     }
-    this.styleEl.textContent = css;
+    // 使用 plugin.addStyle 添加新样式（Obsidian 推荐方式）
+    // addStyle 会自动管理样式生命周期，无需手动创建 style 元素
+    this.styleEl = this.plugin.addStyle(css);
   }
 
   /**

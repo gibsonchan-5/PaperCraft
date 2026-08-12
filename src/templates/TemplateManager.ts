@@ -3,7 +3,7 @@
  * PaperCraft - Template Manager
  */
 
-import type { PaperCraftSettings, PaperTemplate } from '../data/PaperData';
+import type { PaperTemplate } from '../data/PaperData';
 import type PaperCraftPlugin from '../main';
 
 export class TemplateManager {
@@ -239,7 +239,6 @@ export class TemplateManager {
   applyTemplate(templateId: string): boolean {
     const template = this.getTemplateById(templateId);
     if (!template) {
-      console.warn('[PaperCraft] Template not found:', templateId);
       return false;
     }
 
@@ -270,7 +269,6 @@ export class TemplateManager {
     this.plugin.saveSettings();
     this.plugin.refreshTheme();
 
-    console.log('[PaperCraft] Applied template:', template.name, templateId);
     return true;
   }
 
