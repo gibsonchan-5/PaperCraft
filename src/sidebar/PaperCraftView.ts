@@ -36,9 +36,9 @@ export class PaperCraftView extends ItemView {
     // 事件委托：只在 onOpen 绑定一次
     this.contentEl.addEventListener('click', (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      const card = target.closest('.papercraft-template-card') as HTMLElement | null;
+      const card = target.closest('.papercraft-template-card');
       if (card) {
-        const templateId = card.dataset.templateId;
+        const templateId = (card as HTMLElement).dataset.templateId;
         if (templateId) {
           this.plugin.templateManager.applyTemplate(templateId);
           this.updateActiveCard(templateId);
@@ -76,7 +76,7 @@ export class PaperCraftView extends ItemView {
       attr: { 'aria-label': '清除格式', title: '清除格式（重置当前笔记样式）' },
     });
     clearBtn.setText('↺');
-    clearBtn.addEventListener('click', async () => {
+    clearBtn.addEventListener('click', () => {
       this.plugin.settings.lines.pattern = 'none';
       this.plugin.settings.texture.type = 'none';
       this.plugin.settings.texture.textureOpacity = 0;
@@ -90,7 +90,7 @@ export class PaperCraftView extends ItemView {
       this.plugin.settings.typography.paragraphSpacing = 0;
       this.plugin.settings.typography.pageMargin = { top: 0, right: 0, bottom: 0, left: 0 };
       this.plugin.settings.activeTemplate = '';
-      await this.plugin.saveSettings();
+      void this.plugin.saveSettings();
       this.plugin.refreshTheme();
       this.render();
     });
@@ -102,10 +102,15 @@ export class PaperCraftView extends ItemView {
     });
     settingsBtn.setText('⚙');
     settingsBtn.addEventListener('click', () => {
-      const setting = (this.app as any).setting;
-      if (setting) {
-        setting.open();
-        setting.openTabById('papercraft');
+      const app = this.app as unknown as {
+        setting: {
+          open(): void;
+          openTabById(id: string): void;
+        };
+      };
+      if (app.setting) {
+        app.setting.open();
+        app.setting.openTabById('papercraft');
       }
     });
 

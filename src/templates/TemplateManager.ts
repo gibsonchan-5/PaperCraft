@@ -266,7 +266,7 @@ export class TemplateManager {
     }
 
     settings.activeTemplate = templateId;
-    this.plugin.saveSettings();
+    void this.plugin.saveSettings();
     this.plugin.refreshTheme();
 
     return true;

@@ -43,8 +43,11 @@ export class ThemeApplier {
       this.styleEl = null;
     }
     // 使用 plugin.addStyle 添加新样式（Obsidian 推荐方式）
-    // addStyle 会自动管理样式生命周期，无需手动创建 style 元素
-    this.styleEl = this.plugin.addStyle(css);
+    // addStyle 返回 HTMLStyleElement 或 CSSStyleSheet，统一转为 HTMLStyleElement
+    const added = this.plugin.addStyle(css);
+    if (added instanceof HTMLStyleElement) {
+      this.styleEl = added;
+    }
   }
 
   /**

@@ -5,8 +5,8 @@
 
 import { App, PluginSettingTab, Setting, Modal, TextComponent, Notice } from 'obsidian';
 import type PaperCraftPlugin from '../main';
-import type { TextureType, LinePattern, PartialTemplateSettings, PaperCraftSettings } from '../data/PaperData';
-import { FONT_PRESETS } from '../data/Defaults';
+import type { TextureType, LinePattern, PartialTemplateSettings, PaperCraftSettings, PaperTemplate } from '../data/PaperData';
+import { FONT_PRESETS, DEFAULT_SETTINGS } from '../data/Defaults';
 
 /**
  * CSS 导入对话框
@@ -27,8 +27,7 @@ class CSSImportModal extends Modal {
     contentEl.createEl('p', { text: '选择要导入的 CSS 文件，系统将自动解析其中的样式属性。' });
 
     const fileInput = contentEl.createEl('input', {
-      type: 'file',
-      accept: '.css',
+      attr: { type: 'file', accept: '.css' },
     });
     fileInput.addClass('papercraft-file-input');
 
@@ -44,28 +43,10 @@ class CSSImportModal extends Modal {
 
     let importedSettings: PartialTemplateSettings | null = null;
 
-    fileInput.addEventListener('change', async (e: Event) => {
-      const input = e.target as HTMLInputElement;
-      const file = input.files?.[0];
-      if (!file) return;
-
-      statusEl.textContent = '正在解析 CSS 文件...';
-
-      try {
-        const text = await file.text();
-        importedSettings = this.parseCSS(text);
-
-        statusEl.textContent = '✓ 解析成功！可以导入。';
-        statusEl.addClass('papercraft-status-success');
-        statusEl.removeClass('papercraft-status-error');
-        importBtn.disabled = false;
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : '未知错误';
-        statusEl.textContent = `✗ 解析失败: ${msg}`;
-        statusEl.addClass('papercraft-status-error');
-        statusEl.removeClass('papercraft-status-success');
-        importBtn.disabled = true;
-      }
+    fileInput.addEventListener('change', (e: Event) => {
+      void this.handleFileSelect(e, statusEl, importBtn, (settings) => {
+        importedSettings = settings;
+      });
     });
 
     importBtn.addEventListener('click', () => {
@@ -75,6 +56,39 @@ class CSSImportModal extends Modal {
         this.close();
       }
     });
+  }
+
+  /**
+   * 处理文件选择事件（异步逻辑拆出，避免 Promise 警告）
+   */
+  private async handleFileSelect(
+    e: Event,
+    statusEl: HTMLElement,
+    importBtn: HTMLButtonElement,
+    onSuccess: (settings: PartialTemplateSettings) => void
+  ): Promise<void> {
+    const input = e.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    statusEl.textContent = '正在解析 CSS 文件...';
+
+    try {
+      const text = await file.text();
+      const settings = this.parseCSS(text);
+      onSuccess(settings);
+
+      statusEl.textContent = '✓ 解析成功！可以导入。';
+      statusEl.addClass('papercraft-status-success');
+      statusEl.removeClass('papercraft-status-error');
+      importBtn.disabled = false;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '未知错误';
+      statusEl.textContent = `✗ 解析失败: ${msg}`;
+      statusEl.addClass('papercraft-status-error');
+      statusEl.removeClass('papercraft-status-success');
+      importBtn.disabled = true;
+    }
   }
 
   onClose() {
@@ -221,28 +235,23 @@ class TemplateNameModal extends Modal {
     textInput.inputEl.addClass('papercraft-text-input');
 
     const buttonContainer = contentEl.createDiv({ cls: 'papercraft-modal-buttons' });
-    
+
     const cancelBtn = buttonContainer.createEl('button', { text: '取消' });
     cancelBtn.addEventListener('click', () => this.close());
 
     const saveBtn = buttonContainer.createEl('button', { text: '保存', cls: 'mod-cta' });
-    saveBtn.addEventListener('click', () => {
+    const doSubmit = (): void => {
       const name = textInput.getValue().trim();
       if (name) {
         this.onSubmit(name);
         this.close();
       }
-    });
+    };
+    saveBtn.addEventListener('click', doSubmit);
 
     textInput.inputEl.focus();
     textInput.inputEl.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        const name = textInput.getValue().trim();
-        if (name) {
-          this.onSubmit(name);
-          this.close();
-        }
-      }
+      if (e.key === 'Enter') doSubmit();
     });
   }
 
@@ -302,6 +311,15 @@ export class SettingsTab extends PluginSettingTab {
     // === 版本信息 ===
     containerEl.createEl('hr');
     containerEl.createEl('p', { text: `PaperCraft v${this.plugin.manifest.version}`, cls: 'papercraft-version' });
+  }
+
+  /**
+   * Obsidian 1.13.0+ 的声明式设置 API
+   * 返回空数组表示使用传统的 display() 方法，
+   * 因为本插件设置面板包含实时预览区和复杂的自定义组件，不适合声明式 API
+   */
+  getSettingDefinitions(): unknown[] {
+    return [];
   }
 
   private tabContentEl: HTMLElement | null = null;
@@ -530,13 +548,8 @@ export class SettingsTab extends PluginSettingTab {
       text: '应用到笔记',
       cls: 'papercraft-action-btn mod-cta',
     });
-    applyBtn.addEventListener('click', async () => {
-      if (this.draftSettings) {
-        Object.assign(this.plugin.settings, JSON.parse(JSON.stringify(this.draftSettings)));
-        await this.plugin.saveSettings();
-        this.plugin.refreshTheme();
-        new Notice('已应用到当前笔记');
-      }
+    applyBtn.addEventListener('click', () => {
+      void this.handleApplyClick();
     });
 
     // 保存为新模板
@@ -546,15 +559,8 @@ export class SettingsTab extends PluginSettingTab {
     });
     saveBtn.addEventListener('click', () => {
       if (this.draftSettings) {
-        new TemplateNameModal(this.app, this.plugin, async (name) => {
-          const template = {
-            id: `custom-${Date.now()}`,
-            name: name,
-            category: 'user' as const,
-            settings: JSON.parse(JSON.stringify(this.draftSettings)),
-          };
-          this.plugin.templateManager.addUserTemplate(template);
-          new Notice(`模板"${name}"已保存`);
+        new TemplateNameModal(this.app, this.plugin, (name) => {
+          void this.handleSaveTemplate(name);
         }).open();
       }
     });
@@ -566,7 +572,7 @@ export class SettingsTab extends PluginSettingTab {
     });
     importBtn.addEventListener('click', () => {
       new CSSImportModal(this.app, this.plugin, (importedSettings) => {
-        this.draftSettings = JSON.parse(JSON.stringify(importedSettings));
+        this.draftSettings = importedSettings;
         this.refreshPreview();
         this.display();
       }).open();
@@ -578,26 +584,43 @@ export class SettingsTab extends PluginSettingTab {
       cls: 'papercraft-action-btn',
     });
     resetBtn.addEventListener('click', () => {
-      // 只重置草稿为默认值，不修改实际设置
-      this.draftSettings = {
-        texture: { type: 'none', textureOpacity: 0.15, textureScale: 1.0 },
-        lines: { pattern: 'none', gap: 38, thickness: 0.5, color: 'rgba(100, 100, 100, 0.3)' },
-        colors: { paperBackground: '', textColor: '', preset: 'custom' },
-        typography: {
-          fontFamily: '',
-          fontSize: 16,
-          letterSpacing: 0,
-          lineHeight: 1.6,
-          paragraphSpacing: 0,
-          pageMargin: { top: 0, right: 0, bottom: 0, left: 0 }
-        },
-        drawing: { enabled: false, showDrawingLayer: true, drawings: [] },
-        activeTemplate: '',
-      };
+      this.draftSettings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
       this.refreshPreview();
       this.display();
       new Notice('预览已重置');
     });
+  }
+
+  /**
+   * 处理"应用到笔记"按钮点击（异步逻辑拆出，避免 Promise 警告）
+   */
+  private async handleApplyClick(): Promise<void> {
+    if (this.draftSettings) {
+      Object.assign(this.plugin.settings, JSON.parse(JSON.stringify(this.draftSettings)));
+      await this.plugin.saveSettings();
+      this.plugin.refreshTheme();
+      new Notice('已应用到当前笔记');
+    }
+  }
+
+  /**
+   * 处理"保存为模板"回调（异步逻辑拆出，避免 Promise 警告）
+   */
+  private async handleSaveTemplate(name: string): Promise<void> {
+    if (!this.draftSettings) return;
+    const template: PaperTemplate = {
+      id: `custom-${Date.now()}`,
+      name,
+      category: 'user',
+      settings: {
+        texture: this.draftSettings.texture,
+        lines: this.draftSettings.lines,
+        colors: this.draftSettings.colors,
+        typography: this.draftSettings.typography,
+      },
+    };
+    this.plugin.templateManager.addUserTemplate(template);
+    new Notice(`模板"${name}"已保存`);
   }
 
   /**

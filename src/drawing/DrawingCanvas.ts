@@ -72,7 +72,7 @@ export class DrawingCanvas {
     if (!editorEl) return;
 
     // 创建 SVG 覆盖层
-    this.svgEl = document.createElementNS(SVG_NS, 'svg') as SVGSVGElement;
+    this.svgEl = document.createElementNS(SVG_NS, 'svg');
     this.svgEl.classList.add('papercraft-drawing-layer');
     this.svgEl.setAttribute('width', '100%');
     this.svgEl.setAttribute('height', '100%');
@@ -356,7 +356,7 @@ export class DrawingCanvas {
     const id = `el-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
     element.id = id;
     this.plugin.settings.drawing.drawings.push(element);
-    this.plugin.saveSettings();
+    void this.plugin.saveSettings();
   }
 
   /**
@@ -382,21 +382,24 @@ export class DrawingCanvas {
 
     let svgElement: SVGElement | null = null;
 
+    const getX = (p: { x: number; y: number }): number => p.x;
+    const getY = (p: { x: number; y: number }): number => p.y;
+
     switch (element.type) {
       case 'line': {
         svgElement = document.createElementNS(SVG_NS, 'line');
-        svgElement.setAttribute('x1', String(element.points[0].x ?? (element.points[0] as any)[0]));
-        svgElement.setAttribute('y1', String(element.points[0].y ?? (element.points[0] as any)[1]));
-        svgElement.setAttribute('x2', String(element.points[1].x ?? (element.points[1] as any)[0]));
-        svgElement.setAttribute('y2', String(element.points[1].y ?? (element.points[1] as any)[1]));
+        svgElement.setAttribute('x1', String(getX(element.points[0])));
+        svgElement.setAttribute('y1', String(getY(element.points[0])));
+        svgElement.setAttribute('x2', String(getX(element.points[1])));
+        svgElement.setAttribute('y2', String(getY(element.points[1])));
         break;
       }
       case 'rect': {
         svgElement = document.createElementNS(SVG_NS, 'rect');
-        const rx = element.points[0].x ?? (element.points[0] as any)[0];
-        const ry = element.points[0].y ?? (element.points[0] as any)[1];
-        const rw = (element.points[1].x ?? (element.points[1] as any)[0]) - rx;
-        const rh = (element.points[1].y ?? (element.points[1] as any)[1]) - ry;
+        const rx = getX(element.points[0]);
+        const ry = getY(element.points[0]);
+        const rw = getX(element.points[1]) - rx;
+        const rh = getY(element.points[1]) - ry;
         svgElement.setAttribute('x', String(rx));
         svgElement.setAttribute('y', String(ry));
         svgElement.setAttribute('width', String(rw));
@@ -405,16 +408,14 @@ export class DrawingCanvas {
       }
       case 'circle': {
         svgElement = document.createElementNS(SVG_NS, 'circle');
-        svgElement.setAttribute('cx', String(element.points[0].x ?? (element.points[0] as any)[0]));
-        svgElement.setAttribute('cy', String(element.points[0].y ?? (element.points[0] as any)[1]));
-        svgElement.setAttribute('r', String(element.points[1].x ?? (element.points[1] as any)[0]));
+        svgElement.setAttribute('cx', String(getX(element.points[0])));
+        svgElement.setAttribute('cy', String(getY(element.points[0])));
+        svgElement.setAttribute('r', String(getX(element.points[1])));
         break;
       }
       case 'freehand': {
         svgElement = document.createElementNS(SVG_NS, 'path');
         if (element.points.length < 2) break;
-        const getX = (p: { x: number; y: number }) => p.x;
-        const getY = (p: { x: number; y: number }) => p.y;
         let d = `M ${getX(element.points[0])} ${getY(element.points[0])}`;
         for (let i = 1; i < element.points.length; i++) {
           d += ` L ${getX(element.points[i])} ${getY(element.points[i])}`;
@@ -440,7 +441,7 @@ export class DrawingCanvas {
    */
   clearLayer() {
     this.plugin.settings.drawing.drawings = [];
-    this.plugin.saveSettings();
+    void this.plugin.saveSettings();
     this.loadDrawingData();
   }
 
@@ -451,7 +452,7 @@ export class DrawingCanvas {
     const drawings = this.plugin.settings.drawing.drawings;
     if (drawings.length > 0) {
       drawings.pop();
-      this.plugin.saveSettings();
+      void this.plugin.saveSettings();
       this.loadDrawingData();
     }
   }
