@@ -113,7 +113,9 @@ export default class PaperCraftPlugin extends Plugin {
     const leaf = this.app.workspace.getRightLeaf(false);
     if (leaf) {
       await leaf.setViewState({ type: VIEW_TYPE, active: true });
-      await this.app.workspace.revealLeaf(leaf);
+      // revealLeaf 在不同版本中签名不同：void 或 Promise<void>
+      // 使用 void 包裹以兼容 minAppVersion 1.4.0
+      void this.app.workspace.revealLeaf(leaf);
     }
   }
 

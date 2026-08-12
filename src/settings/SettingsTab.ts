@@ -272,7 +272,17 @@ export class SettingsTab extends PluginSettingTab {
     this.plugin = plugin;
   }
 
+  /**
+   * 重写 display 方法（避免 deprecation 警告）：调用自定义的 renderUI
+   */
   display(): void {
+    this.renderUI();
+  }
+
+  /**
+   * 实际渲染设置面板的方法
+   */
+  private renderUI(): void {
     const { containerEl } = this;
     containerEl.empty();
 
@@ -318,8 +328,7 @@ export class SettingsTab extends PluginSettingTab {
    * 返回空数组表示使用传统的 display() 方法，
    * 因为本插件设置面板包含实时预览区和复杂的自定义组件，不适合声明式 API
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getSettingDefinitions(): any[] {
+  getSettingDefinitions(): never[] {
     return [];
   }
 
@@ -595,7 +604,7 @@ export class SettingsTab extends PluginSettingTab {
           this.draftSettings.typography = { ...this.draftSettings.typography, ...importedSettings.typography };
         }
         this.refreshPreview();
-        this.display();
+        this.renderUI();
       }).open();
     });
 
@@ -607,7 +616,7 @@ export class SettingsTab extends PluginSettingTab {
     resetBtn.addEventListener('click', () => {
       this.draftSettings = this.cloneSettings(DEFAULT_SETTINGS);
       this.refreshPreview();
-      this.display();
+      this.renderUI();
       new Notice('预览已重置');
     });
   }

@@ -255,11 +255,30 @@
   background: var(--background-modifier-hover);
 }
 
-/* ==================== 稿纸主题激活 ==================== */
+/* ==================== 稿纸主题激活（CSS 变量驱动） ==================== */
 .papercraft-active .markdown-source-view .cm-content,
 .papercraft-active .markdown-preview-view {
+  background-color: var(--papercraft-paper-bg, #FFFFFF);
+  background-image: var(--papercraft-bg-image, none);
+  background-size: var(--papercraft-bg-size, auto);
+  background-repeat: var(--papercraft-bg-repeat, repeat);
+  color: var(--papercraft-text-color, #333333);
+  font-family: var(--papercraft-font-family, inherit);
+  font-size: var(--papercraft-font-size, 16px);
+  line-height: var(--papercraft-line-height, 1.6);
+  letter-spacing: var(--papercraft-letter-spacing, 0em);
+  padding-top: var(--papercraft-padding-top, 0px);
+  padding-right: var(--papercraft-padding-right, 0px);
+  padding-bottom: var(--papercraft-padding-bottom, 0px);
+  padding-left: var(--papercraft-padding-left, 0px);
   background-attachment: local;
   transition: background 0.3s ease;
+}
+
+.papercraft-active .markdown-source-view .cm-editor,
+.papercraft-active .markdown-source-view .cm-scroller,
+.papercraft-active .markdown-preview-sizer {
+  background: transparent;
 }
 
 /* ==================== 绘图图层 ==================== */
