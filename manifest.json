@@ -1,7 +1,7 @@
 {
   "id": "papercraft",
   "name": "PaperCraft",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "minAppVersion": "1.13.0",
   "description": "Customizable manuscript paper styles with premium templates, supporting paper texture, stripes, colors, typography, and drawing annotations.",
   "author": "JC",
