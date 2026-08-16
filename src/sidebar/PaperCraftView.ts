@@ -126,28 +126,48 @@ export class PaperCraftView extends ItemView {
     const userTemplates = this.plugin.templateManager.getUserTemplates();
     const activeTemplateId = this.plugin.settings.activeTemplate || '';
 
-    // 内置模板
-    if (builtinTemplates.length > 0) {
+    // 按 mode 分组
+    const dayTemplates = builtinTemplates.filter(t => !t.mode || t.mode === 'day');
+    const nightTemplates = builtinTemplates.filter(t => t.mode === 'night');
+
+    // 白天主题
+    if (dayTemplates.length > 0) {
       const section = container.createDiv({ cls: 'papercraft-section' });
-      section.createEl('h3', { text: t('sidebar.builtin', lang), cls: 'papercraft-section-title' });
+      section.createEl('h3', { text: '白天主题', cls: 'papercraft-section-title' });
       const grid = section.createDiv({ cls: 'papercraft-template-grid' });
 
-      builtinTemplates.forEach(template => {
+      dayTemplates.forEach(template => {
+        this.createTemplateCard(grid, template, template.id === activeTemplateId);
+      });
+    }
+
+    // 夜间主题
+    if (nightTemplates.length > 0) {
+      const section = container.createDiv({ cls: 'papercraft-section' });
+      const titleEl = section.createEl('h3', { cls: 'papercraft-section-title' });
+      titleEl.createSpan({ text: '夜间主题' });
+      titleEl.createSpan({ text: '（建议在深色模式下使用）', cls: 'papercraft-section-hint' });
+
+      const grid = section.createDiv({ cls: 'papercraft-template-grid' });
+
+      nightTemplates.forEach(template => {
         this.createTemplateCard(grid, template, template.id === activeTemplateId);
       });
     }
 
     // 自定义模板
     const customSection = container.createDiv({ cls: 'papercraft-section' });
-    customSection.createEl('h3', { text: t('sidebar.custom', lang), cls: 'papercraft-section-title' });
+    const customTitleEl = customSection.createEl('h3', { cls: 'papercraft-section-title' });
+    customTitleEl.createSpan({ text: t('sidebar.custom', lang) });
+    if (userTemplates.length === 0) {
+      customTitleEl.createSpan({ text: `（${t('sidebar.noCustom', lang)}）`, cls: 'papercraft-section-hint' });
+    }
 
     if (userTemplates.length > 0) {
       const grid = customSection.createDiv({ cls: 'papercraft-template-grid' });
       userTemplates.forEach(template => {
         this.createTemplateCard(grid, template, template.id === activeTemplateId);
       });
-    } else {
-      customSection.createDiv({ cls: 'papercraft-empty-hint' }).setText(t('sidebar.noCustom', lang));
     }
   }
 

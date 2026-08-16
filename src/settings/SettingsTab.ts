@@ -655,7 +655,7 @@ export class SettingsTab extends PluginSettingTab {
     // 应用到笔记
     const applyBtn = btnContainer.createEl('button', {
       text: '应用到笔记',
-      cls: 'papercraft-action-btn mod-cta',
+      cls: 'papercraft-action-btn',
     });
     applyBtn.addEventListener('click', () => {
       void this.handleApplyClick();

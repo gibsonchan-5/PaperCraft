@@ -21,3 +21,6 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Debug files
+debug-heading.js

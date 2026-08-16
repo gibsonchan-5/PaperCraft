@@ -2,7 +2,7 @@
 
 /* ==================== 侧边栏 ==================== */
 .papercraft-sidebar {
-  padding: 12px;
+  padding: 16px 14px 12px;
   overflow-y: auto;
 }
 
@@ -145,7 +145,9 @@
 }
 
 .papercraft-sidebar-header {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--background-modifier-border);
 }
 
 .papercraft-sidebar-header-top {
@@ -156,9 +158,10 @@
 
 .papercraft-sidebar-header-top h2 {
   margin: 0;
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 600;
   color: var(--text-normal);
+  letter-spacing: 0.3px;
 }
 
 /* 标题栏图标按钮组 */
@@ -171,16 +174,16 @@
 .papercraft-header-icon-btn {
   background: none;
   border: 1px solid var(--background-modifier-border);
-  border-radius: 4px;
-  width: 26px;
-  height: 26px;
-  font-size: 15px;
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  font-size: 14px;
   cursor: pointer;
   color: var(--text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
   line-height: 1;
   padding: 0;
 }
@@ -191,76 +194,83 @@
   border-color: var(--background-modifier-border-hover);
 }
 
-.papercraft-header-icon-btn[aria-label="清除格式"] {
-  color: var(--text-error);
-}
-
-.papercraft-header-icon-btn[aria-label="清除格式"]:hover {
-  background: var(--background-modifier-error-hover, #e06060);
-  color: #fff;
-  border-color: var(--background-modifier-error-hover, #e06060);
-}
 
 .papercraft-section {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .papercraft-section-title {
-  margin: 0 0 8px 0;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  margin: 0 0 10px 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-normal);
+  padding-left: 10px;
+  position: relative;
+  white-space: nowrap;
 }
 
-.papercraft-empty-hint {
-  font-size: 12px;
+.papercraft-section-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 12px;
+  background: var(--interactive-accent);
+  border-radius: 2px;
+  opacity: 0.7;
+}
+
+.papercraft-section-hint {
   color: var(--text-faint);
-  font-style: italic;
-  padding: 8px 0;
+  font-size: 11px;
+  font-weight: 400;
+  margin-left: 6px;
 }
 
 /* 模板网格 */
 .papercraft-template-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
+  gap: 10px;
 }
 
 .papercraft-template-card {
   border: 1px solid var(--background-modifier-border);
-  border-radius: 5px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
   overflow: hidden;
   background: var(--background-primary);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .papercraft-template-card:hover {
   border-color: var(--background-modifier-border-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .papercraft-template-card.active {
   border-color: var(--interactive-accent);
   border-width: 2px;
-  box-shadow: 0 0 0 2px var(--interactive-accent-bg, rgba(98, 140, 255, 0.15));
+  box-shadow: 0 0 0 1px var(--interactive-accent-bg, rgba(98, 140, 255, 0.1));
 }
 
 /* 缩略图 — 缩小 */
 .papercraft-template-thumb {
   width: 100%;
-  height: 42px;
+  height: 48px;
   background-attachment: local;
   background-repeat: repeat;
   background-size: auto;
+  border-bottom: 1px solid var(--background-modifier-border);
 }
 
 .papercraft-template-name {
-  padding: 4px 4px;
-  font-size: 10px;
+  padding: 6px 4px;
+  font-size: 11px;
   font-weight: 500;
   color: var(--text-normal);
   text-align: center;

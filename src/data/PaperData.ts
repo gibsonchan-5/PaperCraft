@@ -99,5 +99,6 @@ export interface PaperTemplate {
   id: string;
   name: string;
   category: 'builtin' | 'user';
+  mode?: 'day' | 'night'; // 白天/夜间模式分类
   settings: PartialTemplateSettings;
 }
