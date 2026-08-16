@@ -87,16 +87,35 @@ export class CSSGenerator {
     const hasTexture = settings.texture?.type && settings.texture.type !== 'none';
     const hasLines = settings.lines?.pattern && settings.lines.pattern !== 'none';
 
+    if (!hasTexture && !hasLines) return 'auto';
+
     // 纹理层需要 100% 100% 拉伸覆盖
-    // 线条层必须用 auto，否则 repeating-linear-gradient 会被拉伸而非重复
-    if (hasTexture && hasLines) {
-      return '100% 100%, auto';
-    } else if (hasTexture) {
-      return '100% 100%';
-    } else if (hasLines) {
-      return 'auto';
+    // 线条层必须用明确的像素尺寸，auto 在某些 Chromium 版本下会被拉伸
+    const gap = settings.lines?.gap || 32;
+    let lineSize = 'auto';
+
+    switch (settings.lines?.pattern) {
+      case 'horizontal':
+        // 横向线条：宽度铺满，高度为 gap
+        lineSize = `100% ${gap}px`;
+        break;
+      case 'vertical':
+        // 纵向线条：宽度为 gap，高度铺满
+        lineSize = `${gap}px 100%`;
+        break;
+      case 'grid':
+        // 网格：gap × gap
+        lineSize = `${gap}px ${gap}px`;
+        break;
+      case 'dot':
+        // 点状：gap × gap
+        lineSize = `${gap}px ${gap}px`;
+        break;
     }
-    return 'auto';
+
+    if (hasTexture && hasLines) return '100% 100%, ' + lineSize;
+    if (hasTexture) return '100% 100%';
+    return lineSize;
   }
 
   /**

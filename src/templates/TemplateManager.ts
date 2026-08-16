@@ -39,7 +39,7 @@ export class TemplateManager {
         mode: 'day',
         settings: {
           texture: { type: 'none', textureOpacity: 0, textureScale: 1 },
-          lines: { pattern: 'dot', gap: 28, thickness: 1.5, color: 'rgba(155, 150, 140, 0.45)' },
+          lines: { pattern: 'dot', gap: 28, thickness: 1.5, color: 'rgba(155, 150, 140, 0.20)' },
           colors: { paperBackground: '#F7F5F0', textColor: '#4A4A3A', preset: 'custom' },
           typography: { fontFamily: 'STKaiti', fontSize: 20, letterSpacing: 0.03, lineHeight: 1.7, paragraphSpacing: 10, pageMargin: { top: 35, right: 45, bottom: 35, left: 55 } },
         },
@@ -63,7 +63,7 @@ export class TemplateManager {
         mode: 'day',
         settings: {
           texture: { type: 'none', textureOpacity: 0, textureScale: 1 },
-          lines: { pattern: 'dot', gap: 32, thickness: 1.0, color: 'rgba(139, 90, 43, 0.35)' },
+          lines: { pattern: 'dot', gap: 32, thickness: 1.0, color: 'rgba(139, 90, 43, 0.18)' },
           colors: { paperBackground: '#F5ECD6', textColor: '#4A3A2A', preset: 'custom' },
           typography: { fontFamily: 'STSong', fontSize: 21, letterSpacing: 0.05, lineHeight: 1.65, paragraphSpacing: 8, pageMargin: { top: 40, right: 50, bottom: 40, left: 65 } },
         },
@@ -75,7 +75,7 @@ export class TemplateManager {
         mode: 'day',
         settings: {
           texture: { type: 'none', textureOpacity: 0, textureScale: 1 },
-          lines: { pattern: 'dot', gap: 38, thickness: 1.2, color: 'rgba(200, 120, 140, 0.40)' },
+          lines: { pattern: 'dot', gap: 38, thickness: 1.2, color: 'rgba(200, 120, 140, 0.22)' },
           colors: { paperBackground: '#FFF8F2', textColor: '#5A3040', preset: 'custom' },
           typography: { fontFamily: 'KaiTi', fontSize: 20, letterSpacing: 0.04, lineHeight: 1.9, paragraphSpacing: 16, pageMargin: { top: 38, right: 55, bottom: 38, left: 75 } },
         },
@@ -87,7 +87,7 @@ export class TemplateManager {
         mode: 'day',
         settings: {
           texture: { type: 'none', textureOpacity: 0, textureScale: 1 },
-          lines: { pattern: 'dot', gap: 30, thickness: 1.2, color: 'rgba(86, 170, 225, 0.40)' },
+          lines: { pattern: 'dot', gap: 30, thickness: 1.2, color: 'rgba(86, 170, 225, 0.22)' },
           colors: { paperBackground: '#E3F2FD', textColor: '#1A3A5A', preset: 'custom' },
           typography: { fontFamily: 'PingFang SC', fontSize: 20, letterSpacing: 0.02, lineHeight: 1.7, paragraphSpacing: 10, pageMargin: { top: 34, right: 42, bottom: 34, left: 62 } },
         },
@@ -111,7 +111,7 @@ export class TemplateManager {
         mode: 'day',
         settings: {
           texture: { type: 'none', textureOpacity: 0, textureScale: 1 },
-          lines: { pattern: 'dot', gap: 28, thickness: 1.0, color: 'rgba(180, 180, 180, 0.30)' },
+          lines: { pattern: 'dot', gap: 28, thickness: 1.0, color: 'rgba(180, 180, 180, 0.15)' },
           colors: { paperBackground: '#FFFFFF', textColor: '#1A1A1A', preset: 'custom' },
           typography: { fontFamily: 'Microsoft YaHei', fontSize: 20, letterSpacing: 0.01, lineHeight: 1.6, paragraphSpacing: 8, pageMargin: { top: 30, right: 40, bottom: 30, left: 60 } },
         },
@@ -135,7 +135,7 @@ export class TemplateManager {
         mode: 'day',
         settings: {
           texture: { type: 'none', textureOpacity: 0, textureScale: 1 },
-          lines: { pattern: 'dot', gap: 32, thickness: 1.2, color: 'rgba(150, 120, 180, 0.35)' },
+          lines: { pattern: 'dot', gap: 32, thickness: 1.2, color: 'rgba(150, 120, 180, 0.20)' },
           colors: { paperBackground: '#F3E5F5', textColor: '#4A148C', preset: 'custom' },
           typography: { fontFamily: 'KaiTi', fontSize: 20, letterSpacing: 0.03, lineHeight: 1.75, paragraphSpacing: 10, pageMargin: { top: 36, right: 46, bottom: 36, left: 66 } },
         },
@@ -147,7 +147,7 @@ export class TemplateManager {
         mode: 'day',
         settings: {
           texture: { type: 'none', textureOpacity: 0, textureScale: 1 },
-          lines: { pattern: 'dot', gap: 30, thickness: 1.0, color: 'rgba(100, 100, 100, 0.40)' },
+          lines: { pattern: 'dot', gap: 30, thickness: 1.0, color: 'rgba(100, 100, 100, 0.20)' },
           colors: { paperBackground: '#F5F5F5', textColor: '#212121', preset: 'custom' },
           typography: { fontFamily: 'STKaiti', fontSize: 20, letterSpacing: 0.02, lineHeight: 1.7, paragraphSpacing: 9, pageMargin: { top: 34, right: 44, bottom: 34, left: 64 } },
         },
@@ -159,7 +159,7 @@ export class TemplateManager {
         mode: 'day',
         settings: {
           texture: { type: 'none', textureOpacity: 0, textureScale: 1 },
-          lines: { pattern: 'dot', gap: 34, thickness: 1.2, color: 'rgba(180, 140, 80, 0.40)' },
+          lines: { pattern: 'dot', gap: 34, thickness: 1.2, color: 'rgba(180, 140, 80, 0.22)' },
           colors: { paperBackground: '#FFF8E1', textColor: '#4A3A1A', preset: 'custom' },
           typography: { fontFamily: 'STSong', fontSize: 21, letterSpacing: 0.04, lineHeight: 1.75, paragraphSpacing: 11, pageMargin: { top: 38, right: 50, bottom: 38, left: 70 } },
         },
@@ -171,7 +171,7 @@ export class TemplateManager {
         mode: 'day',
         settings: {
           texture: { type: 'none', textureOpacity: 0, textureScale: 1 },
-          lines: { pattern: 'dot', gap: 40, thickness: 1.2, color: 'rgba(220, 120, 140, 0.35)' },
+          lines: { pattern: 'dot', gap: 40, thickness: 1.2, color: 'rgba(220, 120, 140, 0.20)' },
           colors: { paperBackground: '#FCE4EC', textColor: '#880E4F', preset: 'custom' },
           typography: { fontFamily: 'STFangsong', fontSize: 20, letterSpacing: 0.04, lineHeight: 1.9, paragraphSpacing: 16, pageMargin: { top: 40, right: 55, bottom: 40, left: 75 } },
         },
@@ -195,7 +195,7 @@ export class TemplateManager {
         mode: 'day',
         settings: {
           texture: { type: 'none', textureOpacity: 0, textureScale: 1 },
-          lines: { pattern: 'dot', gap: 34, thickness: 1.0, color: 'rgba(160, 130, 100, 0.35)' },
+          lines: { pattern: 'dot', gap: 34, thickness: 1.0, color: 'rgba(160, 130, 100, 0.20)' },
           colors: { paperBackground: '#F0EDE8', textColor: '#4A4030', preset: 'custom' },
           typography: { fontFamily: 'STSong', fontSize: 20, letterSpacing: 0.04, lineHeight: 1.8, paragraphSpacing: 12, pageMargin: { top: 36, right: 50, bottom: 36, left: 68 } },
         },
