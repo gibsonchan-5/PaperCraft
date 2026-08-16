@@ -84,27 +84,19 @@ export class CSSGenerator {
    * 构建 background-size 值
    */
   private buildBackgroundSize(settings: PaperCraftSettings): string {
-    const sizes: string[] = [];
+    const hasTexture = settings.texture?.type && settings.texture.type !== 'none';
+    const hasLines = settings.lines?.pattern && settings.lines.pattern !== 'none';
 
-    // 纹理通常是 100%
-    if (settings.texture?.type && settings.texture.type !== 'none') {
-      sizes.push('100% 100%', '100% 100%');
+    // 纹理层需要 100% 100% 拉伸覆盖
+    // 线条层必须用 auto，否则 repeating-linear-gradient 会被拉伸而非重复
+    if (hasTexture && hasLines) {
+      return '100% 100%, auto';
+    } else if (hasTexture) {
+      return '100% 100%';
+    } else if (hasLines) {
+      return 'auto';
     }
-
-    // 线条
-    if (settings.lines?.pattern && settings.lines.pattern !== 'none') {
-      const gap = settings.lines.gap || 32;
-      if (settings.lines.pattern === 'dot') {
-        sizes.push(`${gap}px ${gap}px`);
-      } else {
-        sizes.push('100% 100%');
-        if (settings.lines.pattern === 'grid') {
-          sizes.push('100% 100%');
-        }
-      }
-    }
-
-    return sizes.length > 0 ? sizes.join(', ') : 'auto';
+    return 'auto';
   }
 
   /**
