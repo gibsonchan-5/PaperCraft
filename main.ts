@@ -3,7 +3,7 @@
  * PaperCraft - Main Entry
  */
 
-import { Plugin, MarkdownView, WorkspaceLeaf } from 'obsidian';
+import { Plugin, MarkdownView, WorkspaceLeaf, MarkdownRenderChild, type MarkdownPostProcessorContext } from 'obsidian';
 import type { PaperCraftSettings } from './src/data/PaperData';
 import { ensureCompleteSettings } from './src/data/Defaults';
 import { SettingsTab } from './src/settings/SettingsTab';
@@ -71,7 +71,13 @@ export default class PaperCraftPlugin extends Plugin {
   onunload(): void {
     // 注意：不要在 onunload 中 detachLeavesOfType，
     // 否则插件重新加载时会重置用户自定义的 leaf 位置。
-    this.themeApplier.remove();
+    if (this.themeApplier) {
+      try {
+        this.themeApplier.remove();
+      } catch (e) {
+        console.warn('PaperCraft: Failed to remove theme applier', e);
+      }
+    }
   }
 
   /**

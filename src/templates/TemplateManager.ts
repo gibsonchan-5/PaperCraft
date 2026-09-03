@@ -273,6 +273,7 @@ export class TemplateManager {
           typography: { fontFamily: 'STSong', fontSize: 20, letterSpacing: 0.03, lineHeight: 1.8, paragraphSpacing: 12, pageMargin: { top: 34, right: 48, bottom: 34, left: 66 } },
         },
       },
+      // ===== 古籍竖排主题 =====
     ];
   }
 

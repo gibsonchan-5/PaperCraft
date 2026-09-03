@@ -79,13 +79,13 @@ export function ensureCompleteSettings(saved: Partial<PaperCraftSettings> | null
         ...((saved.typography || {}).pageMargin || {}),
       },
     },
-    drawing: {
-      ...DEFAULT_SETTINGS.drawing,
-      ...(saved.drawing || {}),
-      drawings: (saved.drawing || {}).drawings || [],
-    },
-    activeTemplate: saved.activeTemplate || '',
-  };
+  drawing: {
+    ...DEFAULT_SETTINGS.drawing,
+    ...(saved.drawing || {}),
+    drawings: (saved.drawing || {}).drawings || [],
+  },
+  activeTemplate: saved.activeTemplate || '',
+};
 }
 
 /**

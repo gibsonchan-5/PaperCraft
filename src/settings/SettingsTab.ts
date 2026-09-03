@@ -627,6 +627,42 @@ export class SettingsTab extends PluginSettingTab {
           this.refreshPreview();
         });
       });
+
+    // ===== 页面边距 =====
+    container.createEl('h3', { text: '页面边距' });
+
+    this.addMarginSetting(container, '上边距 (px)', '调整内容区域距纸张上边框的留白宽度', 'top');
+    this.addMarginSetting(container, '下边距 (px)', '调整内容区域距纸张下边框的留白宽度', 'bottom');
+    this.addMarginSetting(container, '左边距 (px)', '调整内容区域距纸张左边框的留白宽度', 'left');
+    this.addMarginSetting(container, '右边距 (px)', '调整内容区域距纸张右边框的留白宽度', 'right');
+  }
+
+  /**
+   * 渲染单个页边距输入项
+   */
+  private addMarginSetting(
+    container: HTMLElement,
+    name: string,
+    desc: string,
+    side: 'top' | 'bottom' | 'left' | 'right'
+  ): void {
+    new Setting(container)
+      .setName(name)
+      .setDesc(desc)
+      .addText(text => {
+        text.setValue(String(this.getDraft().typography.pageMargin[side]));
+        text.setPlaceholder('0');
+        text.inputEl.type = 'number';
+        text.inputEl.min = '0';
+        text.inputEl.max = '600';
+        text.onChange((value) => {
+          const num = parseInt(value, 10);
+          if (!isNaN(num) && num >= 0 && num <= 600) {
+            this.getDraft().typography.pageMargin[side] = num;
+            this.refreshPreview();
+          }
+        });
+      });
   }
 
   /**

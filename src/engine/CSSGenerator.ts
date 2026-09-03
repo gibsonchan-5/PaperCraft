@@ -168,4 +168,79 @@ export class CSSGenerator {
         return [];
     }
   }
+
+  /**
+   * 生成 PDF 背景样式
+   * 返回可以直接注入 style 标签的 CSS 文本
+   */
+  generatePDFStyles(settings: PaperCraftSettings): string {
+    const bgColor = settings.colors?.paperBackground || '#FFFFFF';
+    const hasLines = settings.lines?.pattern && settings.lines.pattern !== 'none';
+    const hasTexture = settings.texture?.type && settings.texture.type !== 'none';
+
+    // 计算亮度，决定混合模式
+    const isDark = this.isColorDark(bgColor);
+    const blendMode = isDark ? 'screen' : 'multiply';
+
+    // 构建背景图案
+    const patternImage = this.buildBackgroundImage(settings);
+    const patternSize = this.buildBackgroundSize(settings);
+
+    let pageBackground: string;
+    let pageBgSize: string;
+    let pageBgRepeat: string;
+
+    if (patternImage !== 'none') {
+      pageBackground = `${bgColor}, ${patternImage}`;
+      pageBgSize = `100% 100%, ${patternSize}`;
+      pageBgRepeat = 'no-repeat, repeat';
+    } else {
+      pageBackground = bgColor;
+      pageBgSize = 'auto';
+      pageBgRepeat = 'repeat';
+    }
+
+    return `
+      /* PaperCraft PDF 背景样式 */
+      .pdf-scroll-container {
+        background-color: ${bgColor} !important;
+      }
+      
+      .page {
+        background: ${pageBackground} !important;
+        background-size: ${pageBgSize} !important;
+        background-repeat: ${pageBgRepeat} !important;
+      }
+      
+      .page canvas,
+      .page .canvasWrapper canvas {
+        mix-blend-mode: ${blendMode} !important;
+      }
+      
+      .page .textLayer {
+        mix-blend-mode: ${blendMode} !important;
+      }
+      
+      .page .annotationLayer {
+        mix-blend-mode: ${blendMode} !important;
+      }
+    `;
+  }
+
+  /**
+   * 判断颜色是否偏暗
+   */
+  private isColorDark(color: string): boolean {
+    if (!color || color === 'none') return false;
+    // 处理 hex 格式
+    const hex = color.replace('#', '');
+    if (hex.length >= 6) {
+      const r = parseInt(hex.substr(0, 2), 16);
+      const g = parseInt(hex.substr(2, 2), 16);
+      const b = parseInt(hex.substr(4, 2), 16);
+      const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+      return brightness < 128;
+    }
+    return false;
+  }
 }
