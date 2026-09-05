@@ -1,5 +1,20 @@
 # PaperCraft 更新日志
 
+## v1.1.8 (2026-09-05)
+
+### 修复（社区审核二次响应）
+- **`obsidianmd/settings-tab/no-deprecated-display` Error**：彻底移除对 `display()` 的覆写与
+  `eslint-disable` 注释，将设置面板迁移至 Obsidian 1.13.0+ 声明式设置 API——
+  `getSettingDefinitions()` 返回单个 `render` 类型定义，render 回调把框架生成的 Setting 行
+  改造成全宽宿主容器，实时预览、标签切换、模板管理等复杂交互逻辑保持不变
+  （此前靠注释屏蔽规则的做法不被允许，现为真正迁移）
+- **`Unexpected undescribed directive comment` Error**：随之消除（不再存在任何 eslint-disable 注释）
+
+### 其他
+- 声明式宿主容器新增 `.papercraft-custom-setting` / `.papercraft-custom-host` 样式
+
+---
+
 ## v1.1.7 (2026-09-05)
 
 ### 修复（社区审核响应）

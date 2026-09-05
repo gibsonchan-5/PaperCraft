@@ -267,6 +267,7 @@ export class SettingsTab extends PluginSettingTab {
   private draftSettings: PaperCraftSettings | null = null;
   private activeTab: string = 'texture'; // 当前激活的标签页
   private armedDeleteIds: Set<string> = new Set(); // 模板删除按钮的两段式确认状态
+  private uiHost: HTMLElement | null = null; // 声明式设置宿主容器（render 钩子创建）
 
   constructor(app: App, plugin: PaperCraftPlugin) {
     super(app, plugin);
@@ -274,24 +275,11 @@ export class SettingsTab extends PluginSettingTab {
   }
 
   /**
-   * 重写 display 方法（避免 deprecation 警告）：调用自定义的 renderUI
-   *
-   * 注：本设置面板包含实时预览区与模板保存 Modal 等复杂自定义组件，
-   * 无法用 Obsidian 1.13+ 的声明式 `getSettingDefinitions()` API 表达，
-   * 故保留 `display()`。此规则为 PluginSettingTab 历史接口，社区审核会标记
-   * 为 deprecation warning（不影响运行与功能），故此处主动 disable 该规则。
+   * 实际渲染设置面板的方法。
+   * 由声明式 getSettingDefinitions() 的 render 钩子调用，
+   * containerEl 为钩子创建的宿主容器（整块设置 UI 的唯一根）。
    */
-  /* eslint-disable obsidianmd/settings-tab/no-deprecated-display */
-  display(): void {
-    this.renderUI();
-  }
-  /* eslint-enable obsidianmd/settings-tab/no-deprecated-display */
-
-  /**
-   * 实际渲染设置面板的方法
-   */
-  private renderUI(): void {
-    const { containerEl } = this;
+  private renderUI(containerEl: HTMLElement): void {
     containerEl.empty();
 
     // === 0. 顶部重要提示：参数只影响实时预览，不影响当前笔记 ===
@@ -347,12 +335,30 @@ export class SettingsTab extends PluginSettingTab {
   }
 
   /**
-   * Obsidian 1.13.0+ 的声明式设置 API
-   * 返回空数组表示使用传统的 display() 方法，
-   * 因为本插件设置面板包含实时预览区和复杂的自定义组件，不适合声明式 API
+   * Obsidian 1.13.0+ 声明式设置 API。
+   *
+   * 面板包含实时预览、标签页切换、模板管理与两段式删除确认等复杂交互，
+   * 无法用纯 `control` 类型表达，故通过单个 `render` 类型定义承载：
+   * 框架先创建一行 Setting，随后 render 回调把该行改造成全宽宿主容器，
+   * 整块设置 UI 由 renderUI() 及其子方法在此宿主内全权渲染与交互。
    */
   getSettingDefinitions(): SettingDefinitionItem[] {
-    return [];
+    return [
+      {
+        name: 'PaperCraft 设置面板',
+        searchable: false,
+        render: (setting): void => {
+          // 将框架生成的 Setting 行改造成全宽自定义宿主
+          setting.settingEl.empty();
+          setting.settingEl.addClass('papercraft-custom-setting');
+          setting.infoEl.detach();
+          setting.controlEl.detach();
+          const host = setting.settingEl.createDiv({ cls: 'papercraft-custom-host' });
+          this.uiHost = host;
+          this.renderUI(host);
+        },
+      },
+    ];
   }
 
   private tabContentEl: HTMLElement | null = null;
@@ -754,7 +760,7 @@ export class SettingsTab extends PluginSettingTab {
           this.draftSettings.typography = { ...this.draftSettings.typography, ...importedSettings.typography };
         }
         this.refreshPreview();
-        this.renderUI();
+        if (this.uiHost) this.renderUI(this.uiHost);
       }).open();
     });
 
@@ -766,7 +772,7 @@ export class SettingsTab extends PluginSettingTab {
     resetBtn.addEventListener('click', () => {
       this.draftSettings = this.cloneSettings(DEFAULT_SETTINGS);
       this.refreshPreview();
-      this.renderUI();
+      if (this.uiHost) this.renderUI(this.uiHost);
       new Notice('预览已重置');
     });
   }

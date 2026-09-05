@@ -709,3 +709,16 @@
     background: white;
   }
 }
+
+/* ==================== 声明式设置宿主（1.13+） ====================
+   getSettingDefinitions() 以单个 render 类型定义承载整块设置 UI：
+   框架先创建一行 Setting，随后把该行改造成全宽宿主容器。 */
+.papercraft-custom-setting.setting-item {
+  display: block;
+  padding: 0;
+  border: none;
+}
+
+.papercraft-custom-host {
+  width: 100%;
+}
