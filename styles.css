@@ -110,6 +110,21 @@
   border-color: var(--background-modifier-error);
 }
 
+/* 模板删除按钮的两段式确认状态：进入 armed 后强制醒目提示 */
+.papercraft-template-item-delete.papercraft-armed,
+.papercraft-template-item-delete.papercraft-armed:hover {
+  background: var(--background-modifier-error);
+  color: #fff;
+  border-color: var(--background-modifier-error);
+  box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.18);
+  animation: papercraft-armed-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes papercraft-armed-pulse {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.18); }
+  50%      { box-shadow: 0 0 0 4px rgba(255, 0, 0, 0.05); }
+}
+
 /* ==================== 实时预览区（设置面板） ==================== */
 .papercraft-preview-wrapper {
   margin-bottom: 24px;

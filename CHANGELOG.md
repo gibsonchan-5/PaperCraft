@@ -1,5 +1,17 @@
 # PaperCraft 更新日志
 
+## v1.1.7 (2026-09-05)
+
+### 修复（社区审核响应）
+- **`obsidian.md/ui/heading` Error**：字体排版页「页面边距」区块由 `createEl('h3')` 改为 `new Setting().setHeading()`，与官方 UI 风格保持一致
+- **`obsidianmd/prefer-create-el` Warning**：模板列表项元素改用 `createDiv()` 替代 `createEl('div')`
+- **`obsidianmd/prefer-modal-confirm` Warning**：删除模板确认对话框由 `window.confirm()` 改为两段式 armed 按钮（首次点击进入 armed 态，5 秒内再次点击才真正删除；超时自动解除）
+
+### 其他
+- `display()` deprecation 警告：因本面板含实时预览与模板保存等复杂自定义组件，无法用 1.13+ 声明式 API 表达，已在文件内主动 disable 该规则，并附详细注释说明
+
+---
+
 ## v1.1.6 (2026-09-03)
 
 ### 新增

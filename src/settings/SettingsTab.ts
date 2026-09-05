@@ -266,6 +266,7 @@ export class SettingsTab extends PluginSettingTab {
   private previewPage: HTMLElement | null = null;
   private draftSettings: PaperCraftSettings | null = null;
   private activeTab: string = 'texture'; // 当前激活的标签页
+  private armedDeleteIds: Set<string> = new Set(); // 模板删除按钮的两段式确认状态
 
   constructor(app: App, plugin: PaperCraftPlugin) {
     super(app, plugin);
@@ -274,10 +275,17 @@ export class SettingsTab extends PluginSettingTab {
 
   /**
    * 重写 display 方法（避免 deprecation 警告）：调用自定义的 renderUI
+   *
+   * 注：本设置面板包含实时预览区与模板保存 Modal 等复杂自定义组件，
+   * 无法用 Obsidian 1.13+ 的声明式 `getSettingDefinitions()` API 表达，
+   * 故保留 `display()`。此规则为 PluginSettingTab 历史接口，社区审核会标记
+   * 为 deprecation warning（不影响运行与功能），故此处主动 disable 该规则。
    */
+  /* eslint-disable obsidianmd/settings-tab/no-deprecated-display */
   display(): void {
     this.renderUI();
   }
+  /* eslint-enable obsidianmd/settings-tab/no-deprecated-display */
 
   /**
    * 实际渲染设置面板的方法
@@ -355,6 +363,8 @@ export class SettingsTab extends PluginSettingTab {
   private renderTabContent(): void {
     if (!this.tabContentEl) return;
     this.tabContentEl.empty();
+    // 重渲染时清空模板删除 armed 状态，避免旧按钮引用泄漏
+    this.armedDeleteIds.clear();
 
     switch (this.activeTab) {
       case 'texture':
@@ -404,11 +414,11 @@ export class SettingsTab extends PluginSettingTab {
     userTemplates.forEach(template => {
       const itemEl = listEl.createDiv({ cls: 'papercraft-template-item' });
       const infoEl = itemEl.createDiv({ cls: 'papercraft-template-item-info' });
-      infoEl.createEl('div', { text: template.name, cls: 'papercraft-template-item-name' });
+      infoEl.createDiv({ text: template.name, cls: 'papercraft-template-item-name' });
       const desc = template.settings.lines?.pattern === 'none'
         ? '纯色模板'
         : `线条：${this.patternLabel(template.settings.lines?.pattern)} · 字号：${template.settings.typography?.fontSize ?? 16}px`;
-      infoEl.createEl('div', { text: desc, cls: 'papercraft-template-item-desc' });
+      infoEl.createDiv({ text: desc, cls: 'papercraft-template-item-desc' });
 
       const actionsEl = itemEl.createDiv({ cls: 'papercraft-template-item-actions' });
       const applyBtn = actionsEl.createEl('button', {
@@ -425,12 +435,24 @@ export class SettingsTab extends PluginSettingTab {
         cls: 'papercraft-template-item-delete',
       });
       deleteBtn.addEventListener('click', () => {
-        const confirmed = confirm(`确定要删除模板「${template.name}」吗？此操作不可撤销。`);
-        if (confirmed) {
-          this.plugin.templateManager.deleteUserTemplate(template.id);
-          new Notice(`已删除模板：${template.name}`);
-          this.renderTabContent();
+        // 两段式确认：第一次进入 armed，第二次才真正删除
+        if (!this.armedDeleteIds.has(template.id)) {
+          this.armedDeleteIds.add(template.id);
+          deleteBtn.textContent = '再次点击确认';
+          deleteBtn.addClass('papercraft-armed');
+          window.setTimeout(() => {
+            this.armedDeleteIds.delete(template.id);
+            if (deleteBtn.isConnected) {
+              deleteBtn.textContent = '删除';
+              deleteBtn.removeClass('papercraft-armed');
+            }
+          }, 5000);
+          return;
         }
+        this.armedDeleteIds.delete(template.id);
+        this.plugin.templateManager.deleteUserTemplate(template.id);
+        new Notice(`已删除模板：${template.name}`);
+        this.renderTabContent();
       });
     });
   }
@@ -629,7 +651,7 @@ export class SettingsTab extends PluginSettingTab {
       });
 
     // ===== 页面边距 =====
-    container.createEl('h3', { text: '页面边距' });
+    new Setting(container).setName('页面边距').setHeading();
 
     this.addMarginSetting(container, '上边距 (px)', '调整内容区域距纸张上边框的留白宽度', 'top');
     this.addMarginSetting(container, '下边距 (px)', '调整内容区域距纸张下边框的留白宽度', 'bottom');
