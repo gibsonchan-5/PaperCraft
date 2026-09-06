@@ -5,7 +5,7 @@
 
 import { Plugin, MarkdownView, WorkspaceLeaf, MarkdownRenderChild, type MarkdownPostProcessorContext } from 'obsidian';
 import type { PaperCraftSettings } from './src/data/PaperData';
-import { ensureCompleteSettings } from './src/data/Defaults';
+import { ensureCompleteSettings, hasActiveStyle } from './src/data/Defaults';
 import { SettingsTab } from './src/settings/SettingsTab';
 import { ThemeApplier } from './src/engine/ThemeApplier';
 import { TemplateManager } from './src/templates/TemplateManager';
@@ -73,7 +73,13 @@ export default class PaperCraftPlugin extends Plugin {
     // 否则插件重新加载时会重置用户自定义的 leaf 位置。
     if (this.themeApplier) {
       try {
-        this.themeApplier.remove();
+        const leaves = this.app.workspace.getLeavesOfType('markdown');
+        leaves.forEach(leaf => {
+          const view = leaf.view;
+          if (view instanceof MarkdownView && view.containerEl) {
+            this.themeApplier.remove(view.containerEl);
+          }
+        });
       } catch (e) {
         console.warn('PaperCraft: Failed to remove theme applier', e);
       }
@@ -139,26 +145,32 @@ export default class PaperCraftPlugin extends Plugin {
   }
 
   /**
-   * 切换当前视图的主题
+   * 切换稿纸工坊总开关（全局启用/停用）
+   * 启用后所有笔记套用稿纸样式；停用后插件完全不介入笔记外观
    */
   toggleThemeOnActiveView(): void {
-    const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
-    if (!activeView) return;
-
-    const container = activeView.containerEl;
-    if (container.hasClass('papercraft-active')) {
-      container.removeClass('papercraft-active');
-      this.themeApplier.remove();
-    } else {
-      this.applyThemeToActiveView();
-    }
+    this.settings.enabled = !this.settings.enabled;
+    void this.saveSettings();
+    this.applyThemeToAllViews();
+    this.updateSidebarPreview();
   }
 
   /**
    * 应用到所有 Markdown 视图
+   * 当 settings.enabled 为 false 时，插件不介入任何笔记样式（清理可能残留的样式）
    */
   applyThemeToAllViews(): void {
     const leaves = this.app.workspace.getLeavesOfType('markdown');
+    // 仅在「已启用」且「存在实际样式」时才注入；否则清理并确保不覆盖用户原有主题
+    if (!this.settings.enabled || !hasActiveStyle(this.settings)) {
+      leaves.forEach(leaf => {
+        const view = leaf.view;
+        if (view instanceof MarkdownView && view.containerEl) {
+          this.themeApplier.remove(view.containerEl);
+        }
+      });
+      return;
+    }
     leaves.forEach(leaf => {
       const view = leaf.view;
       if (view instanceof MarkdownView && view.containerEl) {
@@ -173,6 +185,11 @@ export default class PaperCraftPlugin extends Plugin {
   applyThemeToActiveView(): void {
     const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
     if (!activeView) return;
+
+    if (!this.settings.enabled || !hasActiveStyle(this.settings)) {
+      this.themeApplier.remove(activeView.containerEl);
+      return;
+    }
 
     this.themeApplier.apply(this.settings, activeView.containerEl);
 

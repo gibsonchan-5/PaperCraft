@@ -145,10 +145,12 @@
 
 .papercraft-preview-box {
   padding: 0;
+  max-height: 340px;
+  overflow-y: auto;
 }
 
 .papercraft-preview-page {
-  min-height: 200px;
+  min-height: 220px;
   background-attachment: local;
   background-repeat: repeat;
   transition: all 0.2s ease;
@@ -721,4 +723,71 @@
 
 .papercraft-custom-host {
   width: 100%;
+}
+
+/* ==================== 系统字体选择器 ==================== */
+.papercraft-font-suggestion {
+  padding: 6px 2px;
+}
+
+.papercraft-font-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.papercraft-font-label {
+  font-size: 15px;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.papercraft-font-label.is-current {
+  color: var(--text-accent);
+  font-weight: 600;
+}
+
+.papercraft-font-sample {
+  flex-shrink: 0;
+  max-width: 45%;
+  font-size: 13px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.papercraft-font-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.papercraft-font-tag {
+  font-size: 11px;
+  line-height: 1.6;
+  padding: 0 6px;
+  border-radius: var(--radius-s, 4px);
+  color: var(--text-faint);
+  background-color: var(--background-modifier-hover);
+}
+
+.papercraft-font-tag.is-current-tag {
+  color: var(--text-accent);
+}
+
+.papercraft-font-tag.is-missing {
+  color: var(--text-faint);
+  opacity: 0.75;
+}
+
+.papercraft-font-hint {
+  padding: 6px 12px;
+  font-size: 11px;
+  color: var(--text-faint);
+  border-top: 1px solid var(--background-modifier-border);
 }

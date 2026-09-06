@@ -5,6 +5,7 @@
 
 import type { PaperTemplate } from '../data/PaperData';
 import type PaperCraftPlugin from '../../main';
+import { DEFAULT_MARGIN_LINE } from '../data/Defaults';
 
 export class TemplateManager {
   private plugin: PaperCraftPlugin;
@@ -302,7 +303,13 @@ export class TemplateManager {
     const settings = this.plugin.settings;
 
     if (s.texture) settings.texture = { ...settings.texture, ...s.texture };
-    if (s.lines) settings.lines = { ...settings.lines, ...s.lines };
+    if (s.lines) {
+      settings.lines = { ...settings.lines, ...s.lines };
+      // 模板未声明装订线时必须显式重置，否则浅合并会让上一个模板的装订线残留
+      settings.lines.marginLine = s.lines.marginLine
+        ? { ...settings.lines.marginLine, ...s.lines.marginLine }
+        : { ...DEFAULT_MARGIN_LINE };
+    }
     if (s.colors) settings.colors = { ...settings.colors, ...s.colors };
     if (s.typography) {
       settings.typography = { ...settings.typography, ...s.typography };
@@ -315,6 +322,8 @@ export class TemplateManager {
     }
 
     settings.activeTemplate = templateId;
+    // 套用模板即启用稿纸工坊，否则笔记不会出现任何效果
+    settings.enabled = true;
     void this.plugin.saveSettings();
     this.plugin.refreshTheme();
     return true;
@@ -322,12 +331,21 @@ export class TemplateManager {
 
   addUserTemplate(template: PaperTemplate): void {
     this.userTemplates.push(template);
+    // 立即刷新右侧栏（PaperCraftView），否则新模板卡片不会马上出现
+    this.plugin.updateSidebarPreview();
   }
 
   deleteUserTemplate(templateId: string): boolean {
     const index = this.userTemplates.findIndex(t => t.id === templateId);
     if (index === -1) return false;
     this.userTemplates.splice(index, 1);
+    // 删除的若是当前激活模板，清空激活标记，避免指向不存在的模板
+    if (this.plugin.settings.activeTemplate === templateId) {
+      this.plugin.settings.activeTemplate = '';
+      void this.plugin.saveSettings();
+    }
+    // 立即刷新右侧栏（PaperCraftView），否则被删模板的卡片仍残留显示
+    this.plugin.updateSidebarPreview();
     return true;
   }
 }

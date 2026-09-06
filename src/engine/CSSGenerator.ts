@@ -8,6 +8,16 @@
 
 import type { PaperCraftSettings } from '../data/PaperData';
 
+/**
+ * 单个背景层（image / size / repeat 三者必须一一对应，
+ * 否则多层背景的层序会错乱，导致图案被拉伸或重复）
+ */
+interface BgLayer {
+  image: string;
+  size: string;
+  repeat: string;
+}
+
 export class CSSGenerator {
   /**
    * 生成 CSS 变量字典
@@ -36,7 +46,7 @@ export class CSSGenerator {
     // 背景层（合并成单一 background-image 变量）
     variables['--papercraft-bg-image'] = this.buildBackgroundImage(settings);
     variables['--papercraft-bg-size'] = this.buildBackgroundSize(settings);
-    variables['--papercraft-bg-repeat'] = 'repeat';
+    variables['--papercraft-bg-repeat'] = this.buildBackgroundRepeat(settings);
 
     return variables;
   }
@@ -67,55 +77,65 @@ export class CSSGenerator {
    * 构建 background-image 值
    */
   private buildBackgroundImage(settings: PaperCraftSettings): string {
-    const layers: string[] = [];
-
-    // 纹理层
-    const textureLayer = this.buildTextureLayer(settings);
-    if (textureLayer) layers.push(textureLayer);
-
-    // 线条层
-    const lineLayers = this.buildLineLayers(settings);
-    layers.push(...lineLayers);
-
-    return layers.length > 0 ? layers.join(', ') : 'none';
+    const layers = this.buildLayers(settings);
+    return layers.length > 0 ? layers.map(l => l.image).join(', ') : 'none';
   }
 
   /**
-   * 构建 background-size 值
+   * 构建 background-size 值（与 background-image 的层序一一对应）
    */
   private buildBackgroundSize(settings: PaperCraftSettings): string {
-    const hasTexture = settings.texture?.type && settings.texture.type !== 'none';
-    const hasLines = settings.lines?.pattern && settings.lines.pattern !== 'none';
+    const layers = this.buildLayers(settings);
+    return layers.length > 0 ? layers.map(l => l.size).join(', ') : 'auto';
+  }
 
-    if (!hasTexture && !hasLines) return 'auto';
+  /**
+   * 构建 background-repeat 值（与 background-image 的层序一一对应）
+   * 装订线只需要画一条，必须 no-repeat，否则会横向平铺满屏
+   */
+  private buildBackgroundRepeat(settings: PaperCraftSettings): string {
+    const layers = this.buildLayers(settings);
+    return layers.length > 0 ? layers.map(l => l.repeat).join(', ') : 'repeat';
+  }
 
-    // 纹理层需要 100% 100% 拉伸覆盖
-    // 线条层必须用明确的像素尺寸，auto 在某些 Chromium 版本下会被拉伸
-    const gap = settings.lines?.gap || 32;
-    let lineSize = 'auto';
+  /**
+   * 构建全部背景层（按 CSS 层序：数组中越靠前 = 显示越靠上）
+   */
+  private buildLayers(settings: PaperCraftSettings): BgLayer[] {
+    const layers: BgLayer[] = [];
 
-    switch (settings.lines?.pattern) {
-      case 'horizontal':
-        // 横向线条：宽度铺满，高度为 gap
-        lineSize = `100% ${gap}px`;
-        break;
-      case 'vertical':
-        // 纵向线条：宽度为 gap，高度铺满
-        lineSize = `${gap}px 100%`;
-        break;
-      case 'grid':
-        // 网格：gap × gap
-        lineSize = `${gap}px ${gap}px`;
-        break;
-      case 'dot':
-        // 点状：gap × gap
-        lineSize = `${gap}px ${gap}px`;
-        break;
+    // 1. 装订线（最上层）
+    const marginLayer = this.buildMarginLineLayer(settings);
+    if (marginLayer) layers.push(marginLayer);
+
+    // 2. 纹理层
+    const textureLayer = this.buildTextureLayer(settings);
+    if (textureLayer) {
+      layers.push({ image: textureLayer, size: '100% 100%', repeat: 'repeat' });
     }
 
-    if (hasTexture && hasLines) return '100% 100%, ' + lineSize;
-    if (hasTexture) return '100% 100%';
-    return lineSize;
+    // 3. 线条层
+    layers.push(...this.buildLineLayers(settings));
+
+    return layers;
+  }
+
+  /**
+   * 装订线层：一条不重复的竖线（线性渐变模拟）
+   */
+  private buildMarginLineLayer(settings: PaperCraftSettings): BgLayer | null {
+    const ml = settings.lines?.marginLine;
+    if (!ml || !ml.enabled) return null;
+
+    const position = Math.max(0, ml.position || 0);
+    const width = Math.max(0.5, ml.width || 1);
+    const color = ml.color || 'rgba(180, 50, 40, 0.4)';
+    const start = position;
+    const end = position + width;
+
+    const image = `linear-gradient(90deg, transparent 0px, transparent ${start}px, ${color} ${start}px, ${color} ${end}px, transparent ${end}px, transparent 100%)`;
+
+    return { image, size: '100% 100%', repeat: 'no-repeat' };
   }
 
   /**
@@ -143,10 +163,11 @@ export class CSSGenerator {
   /**
    * 线条层
    */
-  private buildLineLayers(settings: PaperCraftSettings): string[] {
+  private buildLineLayers(settings: PaperCraftSettings): BgLayer[] {
     const lines = settings.lines;
     if (!lines || lines.pattern === 'none') return [];
 
+    // 线条层必须用明确的像素尺寸，auto 在某些 Chromium 版本下会被拉伸
     const gap = lines.gap || 32;
     const thick = lines.thickness || 0.5;
     const gapMinus = gap - thick;
@@ -154,16 +175,38 @@ export class CSSGenerator {
 
     switch (lines.pattern) {
       case 'horizontal':
-        return [`repeating-linear-gradient(0deg, transparent 0px, transparent ${gapMinus}px, ${color} ${gapMinus}px, ${color} ${gap}px)`];
+        // 横向线条：宽度铺满，高度为 gap
+        return [{
+          image: `repeating-linear-gradient(0deg, transparent 0px, transparent ${gapMinus}px, ${color} ${gapMinus}px, ${color} ${gap}px)`,
+          size: `100% ${gap}px`,
+          repeat: 'repeat',
+        }];
       case 'vertical':
-        return [`repeating-linear-gradient(90deg, transparent 0px, transparent ${gapMinus}px, ${color} ${gapMinus}px, ${color} ${gap}px)`];
+        // 纵向线条：宽度为 gap，高度铺满
+        return [{
+          image: `repeating-linear-gradient(90deg, transparent 0px, transparent ${gapMinus}px, ${color} ${gapMinus}px, ${color} ${gap}px)`,
+          size: `${gap}px 100%`,
+          repeat: 'repeat',
+        }];
       case 'grid':
         return [
-          `repeating-linear-gradient(0deg, transparent 0px, transparent ${gapMinus}px, ${color} ${gapMinus}px, ${color} ${gap}px)`,
-          `repeating-linear-gradient(90deg, transparent 0px, transparent ${gapMinus}px, ${color} ${gapMinus}px, ${color} ${gap}px)`,
+          {
+            image: `repeating-linear-gradient(0deg, transparent 0px, transparent ${gapMinus}px, ${color} ${gapMinus}px, ${color} ${gap}px)`,
+            size: `100% ${gap}px`,
+            repeat: 'repeat',
+          },
+          {
+            image: `repeating-linear-gradient(90deg, transparent 0px, transparent ${gapMinus}px, ${color} ${gapMinus}px, ${color} ${gap}px)`,
+            size: `${gap}px 100%`,
+            repeat: 'repeat',
+          },
         ];
       case 'dot':
-        return [`radial-gradient(circle at center, ${color} 0.6px, transparent 1px)`];
+        return [{
+          image: `radial-gradient(circle at center, ${color} 0.6px, transparent 1px)`,
+          size: `${gap}px ${gap}px`,
+          repeat: 'repeat',
+        }];
       default:
         return [];
     }
@@ -185,6 +228,7 @@ export class CSSGenerator {
     // 构建背景图案
     const patternImage = this.buildBackgroundImage(settings);
     const patternSize = this.buildBackgroundSize(settings);
+    const patternRepeat = this.buildBackgroundRepeat(settings);
 
     let pageBackground: string;
     let pageBgSize: string;
@@ -193,7 +237,7 @@ export class CSSGenerator {
     if (patternImage !== 'none') {
       pageBackground = `${bgColor}, ${patternImage}`;
       pageBgSize = `100% 100%, ${patternSize}`;
-      pageBgRepeat = 'no-repeat, repeat';
+      pageBgRepeat = `no-repeat, ${patternRepeat}`;
     } else {
       pageBackground = bgColor;
       pageBgSize = 'auto';

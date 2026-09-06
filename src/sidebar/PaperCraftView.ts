@@ -85,6 +85,7 @@ export class PaperCraftView extends ItemView {
     clearBtn.setText('↺');
     clearBtn.addEventListener('click', () => {
       this.plugin.settings.lines.pattern = 'none';
+      this.plugin.settings.lines.marginLine = { enabled: false, position: 30, width: 2, color: 'rgba(180, 50, 40, 0.4)' };
       this.plugin.settings.texture.type = 'none';
       this.plugin.settings.texture.textureOpacity = 0;
       this.plugin.settings.colors.paperBackground = '';

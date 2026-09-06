@@ -28,6 +28,15 @@ export interface LineSettings {
   gap: number;               // 线条间距 (px)
   thickness: number;         // 线条粗细 (px)
   color: string;             // 线条颜色
+  marginLine?: MarginLineSettings; // 装订线（竖线），可选
+}
+
+// 装订线设置
+export interface MarginLineSettings {
+  enabled: boolean;          // 是否显示装订线，默认关闭
+  position: number;          // 距左边缘的距离 (px)
+  width: number;             // 线条粗细 (px)
+  color: string;             // 线条颜色
 }
 
 // 颜色设置
@@ -78,12 +87,14 @@ export interface DrawingElement {
 export interface PaperCraftSettings {
   version: string;
   language: Language;
+  enabled: boolean;          // 是否启用稿纸主题；为 false 时插件不介入任何笔记样式
   texture: TextureSettings;
   lines: LineSettings;
   colors: ColorSettings;
   typography: TypographySettings;
   drawing: DrawingSettings;
   activeTemplate: string;    // 当前激活的模板ID
+  recentFonts?: string[];    // 最近从系统字体选择器中选用过的字体（最多 10 个）
 }
 
 // 模板设置（部分设置即可）

@@ -42,9 +42,18 @@ export class ThemeApplier {
   }
 
   /**
-   * 移除主题（保留接口兼容性）
+   * 移除主题：移除 papercraft-active 类并清除本插件写入的内联 CSS 变量
+   * 这样即使 settings 为空（font-size/line-height 等默认值），也不会覆盖用户原有主题
    */
-  remove(): void {
-    // 不需要动态清理
+  remove(containerEl?: HTMLElement): void {
+    if (!containerEl) return;
+    containerEl.removeClass('papercraft-active');
+    // 清除本插件写入的所有 --papercraft-* 内联变量
+    for (let i = containerEl.style.length - 1; i >= 0; i--) {
+      const prop = containerEl.style.item(i);
+      if (prop.startsWith('--papercraft-')) {
+        containerEl.style.removeProperty(prop);
+      }
+    }
   }
 }

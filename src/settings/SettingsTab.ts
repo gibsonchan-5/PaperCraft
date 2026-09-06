@@ -5,8 +5,9 @@
 
 import { App, PluginSettingTab, Setting, Modal, TextComponent, Notice, SettingDefinitionItem } from 'obsidian';
 import type PaperCraftPlugin from '../../main';
-import type { TextureType, LinePattern, PartialTemplateSettings, PaperCraftSettings, PaperTemplate } from '../data/PaperData';
-import { FONT_PRESETS, DEFAULT_SETTINGS } from '../data/Defaults';
+import type { TextureType, LinePattern, PartialTemplateSettings, PaperCraftSettings, PaperTemplate, MarginLineSettings } from '../data/PaperData';
+import { FONT_PRESETS, DEFAULT_SETTINGS, DEFAULT_MARGIN_LINE } from '../data/Defaults';
+import { FontPickerModal, enumerateSystemFonts } from './FontPickerModal';
 
 /**
  * CSS 导入对话框
@@ -568,6 +569,71 @@ export class SettingsTab extends PluginSettingTab {
           this.refreshPreview();
         });
       });
+
+    // === 装订线 ===
+    new Setting(container).setName('装订线').setHeading();
+
+    const marginLine = this.getMarginLine();
+
+    new Setting(container)
+      .setName('显示装订线')
+      .setDesc('在纸张左侧绘制一条竖线，模拟装订位置（默认关闭）')
+      .addToggle(toggle => {
+        toggle.setValue(marginLine.enabled);
+        toggle.onChange((value) => {
+          marginLine.enabled = value;
+          this.refreshPreview();
+          this.renderTabContent();
+        });
+      });
+
+    if (marginLine.enabled) {
+      new Setting(container)
+        .setName('距左边缘 (px)')
+        .setDesc('装订线距离纸张左边缘的位置')
+        .addSlider(slider => {
+          slider.setLimits(0, 200, 1);
+          slider.setValue(marginLine.position);
+          slider.setDynamicTooltip();
+          slider.onChange((value) => {
+            marginLine.position = value;
+            this.refreshPreview();
+          });
+        });
+
+      new Setting(container)
+        .setName('装订线粗细 (px)')
+        .addSlider(slider => {
+          slider.setLimits(0.5, 6, 0.5);
+          slider.setValue(marginLine.width);
+          slider.setDynamicTooltip();
+          slider.onChange((value) => {
+            marginLine.width = value;
+            this.refreshPreview();
+          });
+        });
+
+      new Setting(container)
+        .setName('装订线颜色')
+        .addColorPicker(color => {
+          color.setValue(this.rgbToHex(marginLine.color));
+          color.onChange((value) => {
+            marginLine.color = value;
+            this.refreshPreview();
+          });
+        });
+    }
+  }
+
+  /**
+   * 获取草稿中的装订线设置（不存在时补默认值）
+   */
+  private getMarginLine(): MarginLineSettings {
+    const lines = this.getDraft().lines;
+    if (!lines.marginLine) {
+      lines.marginLine = { ...DEFAULT_MARGIN_LINE };
+    }
+    return lines.marginLine;
   }
 
   private renderColorsTab(container: HTMLElement): void {
@@ -604,6 +670,17 @@ export class SettingsTab extends PluginSettingTab {
         dropdown.onChange((value) => {
           this.getDraft().typography.fontFamily = value;
           this.refreshPreview();
+        });
+      });
+
+    new Setting(container)
+      .setName('系统字体')
+      .setDesc('从本机已安装的字体中挑选，支持搜索与实时预览')
+      .addButton(btn => {
+        btn.setButtonText('浏览字体…');
+        btn.setTooltip('打开系统字体选择器');
+        btn.onClick(() => {
+          void this.openFontPicker();
         });
       });
 
@@ -691,6 +768,51 @@ export class SettingsTab extends PluginSettingTab {
           }
         });
       });
+  }
+
+  /**
+   * 打开系统字体选择器：先枚举本机字体，再弹出搜索式选择面板
+   */
+  private async openFontPicker(): Promise<void> {
+    const scanning = new Notice('正在扫描本机字体…', 0);
+
+    try {
+      const result = await enumerateSystemFonts();
+      scanning.hide();
+
+      if (!result.fonts || result.fonts.length === 0) {
+        new Notice('未能获取到字体列表，请改用「自定义字体名称」手动输入');
+        return;
+      }
+
+      new FontPickerModal(this.app, result.fonts, {
+        mode: result.mode,
+        installedCount: result.installedCount,
+        recentFonts: this.plugin.settings.recentFonts ?? [],
+        currentFont: this.getDraft().typography.fontFamily,
+        onChoose: (family: string) => {
+          this.getDraft().typography.fontFamily = family;
+          void this.rememberFont(family);
+          this.refreshPreview();
+          this.renderTabContent();
+        },
+      }).open();
+    } catch (err) {
+      scanning.hide();
+      const msg = err instanceof Error ? err.message : '未知错误';
+      new Notice(`字体扫描失败：${msg}`);
+    }
+  }
+
+  /**
+   * 记住最近选用的字体（最多 10 个，最近使用的排在最前）
+   */
+  private async rememberFont(family: string): Promise<void> {
+    if (!family) return;
+    const current = this.plugin.settings.recentFonts ?? [];
+    const next = [family, ...current.filter(f => f !== family)].slice(0, 10);
+    this.plugin.settings.recentFonts = next;
+    await this.plugin.saveSettings();
   }
 
   /**
@@ -814,7 +936,7 @@ export class SettingsTab extends PluginSettingTab {
    */
   private buildPreview(container: HTMLElement): void {
     const wrapper = container.createDiv({ cls: 'papercraft-preview-wrapper' });
-    wrapper.createDiv({ cls: 'papercraft-preview-title', text: '实时预览（调整参数此处变化，点击"应用到笔记"才生效）' });
+    wrapper.createDiv({ cls: 'papercraft-preview-title', text: '实时预览（1:1 真实尺寸，可滚动；调整参数此处实时变化，点击"应用到笔记"才生效）' });
 
     const previewBox = wrapper.createDiv({ cls: 'papercraft-preview-box' });
     this.previewPage = previewBox.createDiv({ cls: 'papercraft-preview-page' });
@@ -824,6 +946,8 @@ export class SettingsTab extends PluginSettingTab {
       '渔舟唱晚，响穷彭蠡之滨；',
       '雁阵惊寒，声断衡阳之浦。',
       '遥襟甫畅，逸兴遄飞。',
+      '爽籁发而清风生，纤歌凝而白云遏。',
+      '睢园绿竹，气凌彭泽之樽；',
     ];
     sampleTexts.forEach(text => {
       this.previewPage?.createDiv({ cls: 'papercraft-preview-line', text });
@@ -839,6 +963,10 @@ export class SettingsTab extends PluginSettingTab {
     if (!this.previewPage) return;
 
     const draft = this.getDraft();
+
+    // 预览按真实尺寸 1:1 渲染（所见即所得），不做缩小。
+    // 预览框通过 max-height + overflow-y 滚动查看，确保字号/行距/边距/线条间距与真实笔记完全一致
+    const scale = 1;
 
     // 背景色
     const bgColor = draft.colors.paperBackground || '#FFFFFF';
@@ -890,20 +1018,21 @@ export class SettingsTab extends PluginSettingTab {
     // 线条层
     const lines = draft.lines;
     if (lines.pattern !== 'none') {
-      const gap = lines.gap || 32;
-      const thick = lines.thickness || 0.5;
+      // 预览框小于真实纸张，所有几何尺寸按统一比例 scale 缩放，保证与真实笔记比例一致
+      const gap = (lines.gap || 32) * scale;
+      const thick = Math.max(0.5, (lines.thickness || 0.5) * scale);
       const gapMinus = gap - thick;
       const color = lines.color || 'rgba(100, 100, 100, 0.3)';
 
       switch (lines.pattern) {
         case 'horizontal':
           allLayers.push(`repeating-linear-gradient(0deg, transparent 0px, transparent ${gapMinus}px, ${color} ${gapMinus}px, ${color} ${gap}px)`);
-          allSizes.push('100% 100%');
+          allSizes.push(`100% ${gap}px`);
           allRepeats.push('repeat');
           break;
         case 'vertical':
           allLayers.push(`repeating-linear-gradient(90deg, transparent 0px, transparent ${gapMinus}px, ${color} ${gapMinus}px, ${color} ${gap}px)`);
-          allSizes.push('100% 100%');
+          allSizes.push(`${gap}px 100%`);
           allRepeats.push('repeat');
           break;
         case 'grid':
@@ -911,7 +1040,7 @@ export class SettingsTab extends PluginSettingTab {
             `repeating-linear-gradient(0deg, transparent 0px, transparent ${gapMinus}px, ${color} ${gapMinus}px, ${color} ${gap}px)`,
             `repeating-linear-gradient(90deg, transparent 0px, transparent ${gapMinus}px, ${color} ${gapMinus}px, ${color} ${gap}px)`
           );
-          allSizes.push('100% 100%', '100% 100%');
+          allSizes.push(`100% ${gap}px`, `${gap}px 100%`);
           allRepeats.push('repeat', 'repeat');
           break;
         case 'dot':
@@ -922,12 +1051,22 @@ export class SettingsTab extends PluginSettingTab {
       }
     }
 
+    // 装订线层（置顶显示，unshift 到数组最前 = CSS 最上层）
+    const marginLine = draft.lines.marginLine;
+    if (marginLine && marginLine.enabled) {
+      const mlStart = Math.max(0, Math.round((marginLine.position || 0) * scale));
+      const mlEnd = mlStart + Math.max(0.5, (marginLine.width || 1) * scale);
+      const mlColor = marginLine.color || 'rgba(180, 50, 40, 0.4)';
+      allLayers.unshift(`linear-gradient(90deg, transparent 0px, transparent ${mlStart}px, ${mlColor} ${mlStart}px, ${mlColor} ${mlEnd}px, transparent ${mlEnd}px, transparent 100%)`);
+      allSizes.unshift('100% 100%');
+      allRepeats.unshift('no-repeat');
+    }
+
     const backgroundImage = allLayers.length > 0 ? allLayers.join(', ') : 'none';
     const backgroundSize = allSizes.length > 0 ? allSizes.join(', ') : '';
     const backgroundRepeat = allRepeats.length > 0 ? allRepeats.join(', ') : '';
 
     // 边距（缩放）
-    const scale = 0.5;
     const pm = draft.typography.pageMargin;
     const paddingTop = `${Math.round((pm?.top || 0) * scale)}px`;
     const paddingRight = `${Math.round((pm?.right || 0) * scale)}px`;
@@ -936,7 +1075,7 @@ export class SettingsTab extends PluginSettingTab {
 
     // 字体
     const fontFamily = draft.typography.fontFamily || '';
-    const fontSize = Math.max(10, Math.round((draft.typography.fontSize || 16) * 0.7));
+    const fontSize = Math.max(8, Math.round((draft.typography.fontSize || 16) * scale));
     const lineHeight = String(draft.typography.lineHeight || 1.65);
     const letterSpacing = `${draft.typography.letterSpacing || 0}em`;
     const color = draft.colors.textColor || '#333333';
