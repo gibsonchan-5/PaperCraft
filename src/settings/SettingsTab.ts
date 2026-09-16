@@ -434,6 +434,12 @@ export class SettingsTab extends PluginSettingTab {
       });
       applyBtn.addEventListener('click', () => {
         this.plugin.templateManager.applyTemplate(template.id);
+        // 模板是直接写入正式设置的（与侧边栏保持一致、立即生效），
+        // 草稿必须同步过去，否则预览看不到效果、且随后的「应用到笔记」
+        // 会用旧草稿把刚应用的模板回滚掉
+        this.draftSettings = this.cloneSettings(this.plugin.settings);
+        this.refreshPreview();
+        this.renderTabContent();
         new Notice(`已应用模板：${template.name}`);
       });
 
@@ -662,11 +668,17 @@ export class SettingsTab extends PluginSettingTab {
     new Setting(container)
       .setName('字体')
       .addDropdown(dropdown => {
+        const currentFont = this.getDraft().typography.fontFamily;
         dropdown.addOption('', '自定义（手动输入）');
+        // 已选字体不在预设清单内（如从本机字体库挑的自装字体）时，
+        // 动态补一条同名选项，否则下拉框会回落显示「自定义」而看不到真值
+        if (currentFont && !(currentFont in FONT_PRESETS)) {
+          dropdown.addOption(currentFont, `${currentFont}（当前）`);
+        }
         Object.entries(FONT_PRESETS).forEach(([value, label]) => {
           dropdown.addOption(value, label);
         });
-        dropdown.setValue(this.getDraft().typography.fontFamily);
+        dropdown.setValue(currentFont);
         dropdown.onChange((value) => {
           this.getDraft().typography.fontFamily = value;
           this.refreshPreview();
@@ -675,7 +687,7 @@ export class SettingsTab extends PluginSettingTab {
 
     new Setting(container)
       .setName('系统字体')
-      .setDesc('从本机已安装的字体中挑选，支持搜索与实时预览')
+      .setDesc('从本机已安装的字体中挑选，支持搜索与实时预览；若本机字体接口不可用，将退回内置清单比对')
       .addButton(btn => {
         btn.setButtonText('浏览字体…');
         btn.setTooltip('打开系统字体选择器');
@@ -785,10 +797,20 @@ export class SettingsTab extends PluginSettingTab {
         return;
       }
 
-      new FontPickerModal(this.app, result.fonts, {
+      const recentFonts = this.plugin.settings.recentFonts ?? [];
+      // 兜底路径的候选清单不可能穷举自装字体，把「最近使用」与「当前字体」
+      // 一并并入列表，确保曾经选过的字体不会在下次打开时消失
+      const fonts = Array.from(
+        new Set([...recentFonts, this.getDraft().typography.fontFamily, ...result.fonts].filter(Boolean))
+      );
+
+      new FontPickerModal(this.app, fonts, {
         mode: result.mode,
+        installed: result.installed,
         installedCount: result.installedCount,
-        recentFonts: this.plugin.settings.recentFonts ?? [],
+        totalCount: result.totalCount,
+        accessNote: result.accessNote,
+        recentFonts,
         currentFont: this.getDraft().typography.fontFamily,
         onChoose: (family: string) => {
           this.getDraft().typography.fontFamily = family;
@@ -806,12 +828,16 @@ export class SettingsTab extends PluginSettingTab {
 
   /**
    * 记住最近选用的字体（最多 10 个，最近使用的排在最前）
+   * 同时写入草稿，避免随后「应用到笔记」用旧快照把刚选的字体挤掉
    */
   private async rememberFont(family: string): Promise<void> {
     if (!family) return;
     const current = this.plugin.settings.recentFonts ?? [];
     const next = [family, ...current.filter(f => f !== family)].slice(0, 10);
     this.plugin.settings.recentFonts = next;
+    if (this.draftSettings) {
+      this.draftSettings.recentFonts = next.slice();
+    }
     await this.plugin.saveSettings();
   }
 
@@ -904,7 +930,16 @@ export class SettingsTab extends PluginSettingTab {
    */
   private async handleApplyClick(): Promise<void> {
     if (this.draftSettings) {
-      Object.assign(this.plugin.settings, this.cloneSettings(this.draftSettings));
+      // 只回写草稿真正负责的四个板块。
+      // 不能用整包 Object.assign：草稿是打开面板时的快照，会把期间由别处
+      // 实时写入的 recentFonts（选字体）与 activeTemplate（应用模板）一并回滚。
+      const draft = this.cloneSettings(this.draftSettings);
+      const live = this.plugin.settings;
+      live.texture = draft.texture;
+      live.lines = draft.lines;
+      live.colors = draft.colors;
+      live.typography = draft.typography;
+
       await this.plugin.saveSettings();
       this.plugin.refreshTheme();
       new Notice('已应用到当前笔记');

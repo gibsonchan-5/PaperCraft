@@ -785,6 +785,10 @@
   opacity: 0.75;
 }
 
+.papercraft-font-tag.is-custom {
+  color: var(--text-accent);
+}
+
 .papercraft-font-hint {
   padding: 6px 12px;
   font-size: 11px;
