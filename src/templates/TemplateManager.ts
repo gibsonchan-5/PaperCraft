@@ -279,7 +279,9 @@ export class TemplateManager {
   }
 
   private loadUserTemplates(): void {
-    this.userTemplates = [];
+    // 从 settings（data.json）读回用户自定义模板；深拷贝避免模板数组与 settings 相互污染
+    const saved = this.plugin.settings.userTemplates ?? [];
+    this.userTemplates = saved.map(t => JSON.parse(JSON.stringify(t)) as PaperTemplate);
   }
 
   getBuiltinTemplates(): PaperTemplate[] {
@@ -331,6 +333,7 @@ export class TemplateManager {
 
   addUserTemplate(template: PaperTemplate): void {
     this.userTemplates.push(template);
+    this.persistUserTemplates();
     // 立即刷新右侧栏（PaperCraftView），否则新模板卡片不会马上出现
     this.plugin.updateSidebarPreview();
   }
@@ -342,10 +345,19 @@ export class TemplateManager {
     // 删除的若是当前激活模板，清空激活标记，避免指向不存在的模板
     if (this.plugin.settings.activeTemplate === templateId) {
       this.plugin.settings.activeTemplate = '';
-      void this.plugin.saveSettings();
     }
+    this.persistUserTemplates();
     // 立即刷新右侧栏（PaperCraftView），否则被删模板的卡片仍残留显示
     this.plugin.updateSidebarPreview();
     return true;
+  }
+
+  /**
+   * 把内存中的用户模板同步到 settings 并持久化。
+   * 此前增删只写内存，App 重启/移动端后台被杀后模板全部丢失。
+   */
+  private persistUserTemplates(): void {
+    this.plugin.settings.userTemplates = JSON.parse(JSON.stringify(this.userTemplates)) as PaperTemplate[];
+    void this.plugin.saveSettings();
   }
 }

@@ -59,6 +59,7 @@ export const DEFAULT_SETTINGS: PaperCraftSettings = {
     drawings: [],
   },
   activeTemplate: '',
+  userTemplates: [],
   recentFonts: [],
 };
 
@@ -142,6 +143,8 @@ export function ensureCompleteSettings(saved: Partial<PaperCraftSettings> | null
     drawings: (saved.drawing || {}).drawings || [],
   },
   activeTemplate: saved.activeTemplate || '',
+  // 用户自定义模板：从 data.json 读回；防御非数组脏数据
+  userTemplates: Array.isArray(saved.userTemplates) ? saved.userTemplates : [],
   recentFonts: Array.isArray(saved.recentFonts) ? saved.recentFonts.slice(0, 10) : [],
 };
 }

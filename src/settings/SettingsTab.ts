@@ -964,6 +964,8 @@ export class SettingsTab extends PluginSettingTab {
     };
     this.plugin.templateManager.addUserTemplate(template);
     new Notice(`模板"${name}"已保存`);
+    // 即时刷新「模板管理」标签页，让新模板马上出现在列表里（否则要手动切一次标签）
+    this.renderTabContent();
   }
 
   /**

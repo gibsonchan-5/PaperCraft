@@ -795,3 +795,56 @@
   color: var(--text-faint);
   border-top: 1px solid var(--background-modifier-border);
 }
+
+/* ==================== 移动端适配（窄屏 ≤600px，桌面端不受影响） ==================== */
+@media (max-width: 600px) {
+  /* 标签条：5 个标签在窄屏下放不下，放行横向滚动而不是溢出裁切 */
+  .papercraft-tab-bar {
+    overflow-x: auto;
+    gap: 6px;
+    padding: 6px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .papercraft-tab-btn {
+    flex: 0 0 auto;
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  /* 模板项：信息占满一行，操作按钮换到第二行，避免强挤 */
+  .papercraft-template-item {
+    flex-wrap: wrap;
+    padding: 12px 14px;
+    row-gap: 10px;
+  }
+
+  .papercraft-template-item-info {
+    flex: 1 1 100%;
+  }
+
+  .papercraft-template-item-actions {
+    flex: 1 1 100%;
+    justify-content: flex-end;
+  }
+
+  /* 加大触控目标（原 12px 字号 + 6px 12px 内边距在移动端难点准） */
+  .papercraft-template-item-apply,
+  .papercraft-template-item-delete {
+    padding: 10px 18px;
+    font-size: 13px;
+  }
+
+  .papercraft-action-btn {
+    padding: 12px 16px;
+  }
+
+  /* 侧边栏模板网格：窄屏从 3 列降为 2 列，卡片不再挤成窄条 */
+  .papercraft-template-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .papercraft-template-thumb {
+    height: 56px;
+  }
+}

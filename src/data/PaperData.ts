@@ -94,6 +94,7 @@ export interface PaperCraftSettings {
   typography: TypographySettings;
   drawing: DrawingSettings;
   activeTemplate: string;    // 当前激活的模板ID
+  userTemplates?: PaperTemplate[]; // 用户自定义模板（持久化到 data.json）
   recentFonts?: string[];    // 最近从系统字体选择器中选用过的字体（最多 10 个）
 }
 
