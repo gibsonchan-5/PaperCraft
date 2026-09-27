@@ -3,7 +3,7 @@
  * PaperCraft - Settings Tab with Independent Preview & Template Saving
  */
 
-import { App, PluginSettingTab, Setting, Modal, TextComponent, Notice, SettingDefinitionItem } from 'obsidian';
+import { App, PluginSettingTab, Setting, Modal, TextComponent, Notice, Platform, SettingDefinitionItem } from 'obsidian';
 import type PaperCraftPlugin from '../../main';
 import type { TextureType, LinePattern, PartialTemplateSettings, PaperCraftSettings, PaperTemplate, MarginLineSettings } from '../data/PaperData';
 import { FONT_PRESETS, DEFAULT_SETTINGS, DEFAULT_MARGIN_LINE } from '../data/Defaults';
@@ -250,7 +250,12 @@ class TemplateNameModal extends Modal {
     };
     saveBtn.addEventListener('click', doSubmit);
 
-    textInput.inputEl.focus();
+    // 仅桌面端自动聚焦：Android WebView 对程序化 focus 只给光标不弹软键盘，
+    // 且输入框保持聚焦时用户再点击也不会重新唤起键盘；
+    // 移动端改为用户点击输入框后由系统唤起键盘（用户手势 focus 才触发 IME）
+    if (!Platform.isMobile) {
+      textInput.inputEl.focus();
+    }
     textInput.inputEl.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') doSubmit();
     });
