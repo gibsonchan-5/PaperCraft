@@ -796,19 +796,30 @@
   border-top: 1px solid var(--background-modifier-border);
 }
 
-/* ==================== 移动端适配（窄屏 ≤600px，桌面端不受影响） ==================== */
-@media (max-width: 600px) {
-  /* 标签条：5 个标签在窄屏下放不下，放行横向滚动而不是溢出裁切 */
+/* ==================== 窄容器适配 ====================
+   设置面板的真实可用宽度取决于宿主容器（手机全屏 / 平板桌面式弹窗 / 桌面侧栏各不相同），
+   视口断点无法覆盖平板桌面式弹窗（视口宽但面板窄）的场景。
+   因此以容器查询为主：.papercraft-custom-host 声明为 inline-size 容器，
+   面板自身宽度 ≤600px 即启用窄布局；@media 块保留为不支持容器查询的旧 WebView 兜底。
+   两块规则需保持同步。 */
+
+.papercraft-custom-host {
+  container: papercraft-host / inline-size;
+}
+
+@container papercraft-host (max-width: 600px) {
+  /* 标签条：5 个标签在窄面板下放不下，放行横向滚动而不是溢出裁切；
+     收紧内边距让 5 个标签在 ~500px 面板下通常可完整放下 */
   .papercraft-tab-bar {
     overflow-x: auto;
-    gap: 6px;
+    gap: 4px;
     padding: 6px;
     -webkit-overflow-scrolling: touch;
   }
 
   .papercraft-tab-btn {
     flex: 0 0 auto;
-    padding: 10px 14px;
+    padding: 10px 12px;
     font-size: 13px;
   }
 
@@ -828,7 +839,7 @@
     justify-content: flex-end;
   }
 
-  /* 加大触控目标（原 12px 字号 + 6px 12px 内边距在移动端难点准） */
+  /* 加大触控目标（原 12px 字号 + 6px 12px 内边距在触屏难点准） */
   .papercraft-template-item-apply,
   .papercraft-template-item-delete {
     padding: 10px 18px;
@@ -839,7 +850,56 @@
     padding: 12px 16px;
   }
 
-  /* 侧边栏模板网格：窄屏从 3 列降为 2 列，卡片不再挤成窄条 */
+  /* 侧边栏模板网格：窄面板从 3 列降为 2 列，卡片不再挤成窄条 */
+  .papercraft-template-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .papercraft-template-thumb {
+    height: 56px;
+  }
+}
+
+/* 窄视口兜底（不支持容器查询的旧 WebView；规则与上方 @container 块保持同步） */
+@media (max-width: 600px) {
+  .papercraft-tab-bar {
+    overflow-x: auto;
+    gap: 4px;
+    padding: 6px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .papercraft-tab-btn {
+    flex: 0 0 auto;
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .papercraft-template-item {
+    flex-wrap: wrap;
+    padding: 12px 14px;
+    row-gap: 10px;
+  }
+
+  .papercraft-template-item-info {
+    flex: 1 1 100%;
+  }
+
+  .papercraft-template-item-actions {
+    flex: 1 1 100%;
+    justify-content: flex-end;
+  }
+
+  .papercraft-template-item-apply,
+  .papercraft-template-item-delete {
+    padding: 10px 18px;
+    font-size: 13px;
+  }
+
+  .papercraft-action-btn {
+    padding: 12px 16px;
+  }
+
   .papercraft-template-grid {
     grid-template-columns: repeat(2, 1fr);
   }
