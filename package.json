@@ -7,7 +7,13 @@
     "dev": "node esbuild.config.mjs",
     "build": "node esbuild.config.mjs production"
   },
-  "keywords": ["obsidian", "plugin", "paper", "template", "css"],
+  "keywords": [
+    "obsidian",
+    "plugin",
+    "paper",
+    "template",
+    "css"
+  ],
   "author": "gibsonchan-5",
   "license": "MIT",
   "devDependencies": {
@@ -15,5 +21,8 @@
     "esbuild": "^0.20.0",
     "obsidian": "latest",
     "typescript": "^5.0.0"
+  },
+  "allowScripts": {
+    "esbuild@0.20.2": true
   }
 }

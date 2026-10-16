@@ -19,7 +19,7 @@ export const DEFAULT_MARGIN_LINE: MarginLineSettings = {
 
 export const DEFAULT_SETTINGS: PaperCraftSettings = {
   version: PLUGIN_VERSION,
-  language: 'zh-CN',
+  language: 'en',
   // 默认启用插件；但仅当用户套用模板或自定义过样式时才注入 CSS 变量，
   // 否则保持中性默认值，不覆盖用户原有主题（见 hasActiveStyle 的启用判定）
   enabled: true,
@@ -163,58 +163,60 @@ export const COLOR_PRESETS = {
 };
 
 /**
- * 字体预设定义（中文字体 + 英文字体）
+ * 字体预设列表（中文字体 + 英文字体）。
+ * 这里只存 font-family 名；显示名由 i18n 的 fontLabel() 提供，
+ * 中日文界面显示本地化名称（如「宋体 (SimSun)」），英文界面显示字体原名。
  */
-export const FONT_PRESETS = {
+export const FONT_PRESETS: string[] = [
   // 中文宋体类
-  'SimSun': '宋体 (SimSun)',
-  'STSong': '华文宋体 (STSong)',
-  'Songti SC': '宋体-简 (Songti SC)',
-  'NSimSun': '新宋体 (NSimSun)',
-  'SimSun-ExtB': '宋体-ExtB (SimSun-ExtB)',
-  'FZSongti-B01S': '方正宋体 (FZSongti)',
-  'Source Han Serif SC': '思源宋体 (Source Han Serif SC)',
-  'Noto Serif CJK SC': '思源宋体 (Noto Serif CJK SC)',
-  
+  'SimSun',
+  'STSong',
+  'Songti SC',
+  'NSimSun',
+  'SimSun-ExtB',
+  'FZSongti-B01S',
+  'Source Han Serif SC',
+  'Noto Serif CJK SC',
+
   // 中文仿宋类
-  'FangSong': '仿宋 (FangSong)',
-  'STFangsong': '华文仿宋 (STFangsong)',
-  'FZFangsong-Z02': '方正仿宋 (FZFangsong)',
-  
+  'FangSong',
+  'STFangsong',
+  'FZFangsong-Z02',
+
   // 中文黑体类
-  'Microsoft YaHei': '微软雅黑 (Microsoft YaHei)',
-  'SimHei': '黑体 (SimHei)',
-  'STHeiti': '华文黑体 (STHeiti)',
-  'Source Han Sans SC': '思源黑体 (Source Han Sans SC)',
-  'Noto Sans CJK SC': '思源黑体 (Noto Sans CJK SC)',
-  'PingFang SC': '苹方-简 (PingFang SC)',
-  'Hiragino Sans GB': '冬青黑体 (Hiragino Sans GB)',
-  
+  'Microsoft YaHei',
+  'SimHei',
+  'STHeiti',
+  'Source Han Sans SC',
+  'Noto Sans CJK SC',
+  'PingFang SC',
+  'Hiragino Sans GB',
+
   // 中文楷体类
-  'KaiTi': '楷体 (KaiTi)',
-  'STKaiti': '华文楷体 (STKaiti)',
-  'FZKaiti-Z04': '方正楷体 (FZKaiti)',
-  'AR PL UKai CN': '文泉驿正黑 (AR PL UKai CN)',
-  
+  'KaiTi',
+  'STKaiti',
+  'FZKaiti-Z04',
+  'AR PL UKai CN',
+
   // 中文其他
-  'STXihei': '华文细黑 (STXihei)',
-  'LiSu': '隶书 (LiSu)',
-  'YouYuan': '幼圆 (YouYuan)',
-  'STXingkai': '华文行楷 (STXingkai)',
-  'STXinwei': '华文新魏 (STXinwei)',
-  
+  'STXihei',
+  'LiSu',
+  'YouYuan',
+  'STXingkai',
+  'STXinwei',
+
   // 英文经典
-  'Times New Roman': 'Times New Roman',
-  'Georgia': 'Georgia',
-  'Arial': 'Arial',
-  'Helvetica': 'Helvetica',
-  'Helvetica Neue': 'Helvetica Neue',
-  'Verdana': 'Verdana',
-  'Tahoma': 'Tahoma',
-  'Trebuchet MS': 'Trebuchet MS',
-  'Lucida Console': 'Lucida Console',
-  'Courier New': 'Courier New',
-  'Garamond': 'Garamond',
-  'Palatino': 'Palatino',
-  'Book Antiqua': 'Book Antiqua',
-};
+  'Times New Roman',
+  'Georgia',
+  'Arial',
+  'Helvetica',
+  'Helvetica Neue',
+  'Verdana',
+  'Tahoma',
+  'Trebuchet MS',
+  'Lucida Console',
+  'Courier New',
+  'Garamond',
+  'Palatino',
+  'Book Antiqua',
+];

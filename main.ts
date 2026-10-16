@@ -3,7 +3,7 @@
  * PaperCraft - Main Entry
  */
 
-import { Plugin, MarkdownView, WorkspaceLeaf, MarkdownRenderChild, type MarkdownPostProcessorContext } from 'obsidian';
+import { Plugin, MarkdownView, WorkspaceLeaf, MarkdownRenderChild, getLanguage, type MarkdownPostProcessorContext } from 'obsidian';
 import type { PaperCraftSettings } from './src/data/PaperData';
 import { ensureCompleteSettings, hasActiveStyle } from './src/data/Defaults';
 import { SettingsTab } from './src/settings/SettingsTab';
@@ -11,6 +11,25 @@ import { ThemeApplier } from './src/engine/ThemeApplier';
 import { TemplateManager } from './src/templates/TemplateManager';
 import { PaperCraftView, VIEW_TYPE } from './src/sidebar/PaperCraftView';
 import { DrawingCanvas } from './src/drawing/DrawingCanvas';
+import { setLanguage, matchLanguage, t } from './src/i18n/i18n';
+
+/**
+ * 读取 Obsidian 的界面语言，用于新装用户的默认语言。
+ * 优先用官方 getLanguage()；极老版本取不到时回退读取 localStorage。
+ */
+function detectObsidianLanguage(): string | null {
+  try {
+    const lang = getLanguage();
+    if (lang) return lang;
+  } catch {
+    // 旧版本可能没有该 API
+  }
+  try {
+    return window.localStorage.getItem('language');
+  } catch {
+    return null;
+  }
+}
 
 export default class PaperCraftPlugin extends Plugin {
   settings: PaperCraftSettings = ensureCompleteSettings(null);
@@ -20,6 +39,8 @@ export default class PaperCraftPlugin extends Plugin {
 
   async onload(): Promise<void> {
     await this.loadSettings();
+    // 必须在注册命令 / Ribbon 之前设置语言，它们的名称在注册时就固定了
+    setLanguage(this.settings.language);
 
     this.themeApplier = new ThemeApplier(this);
     this.drawingCanvas = new DrawingCanvas(this);
@@ -34,14 +55,14 @@ export default class PaperCraftPlugin extends Plugin {
     });
 
     // 添加 Ribbon 图标
-    this.addRibbonIcon('scroll', '稿纸工坊', () => {
+    this.addRibbonIcon('scroll', t('app.name'), () => {
       void this.activateSidebar();
     });
 
     // 添加命令
     this.addCommand({
       id: 'toggle-sidebar',
-      name: '打开/关闭稿纸工坊侧边栏',
+      name: t('command.toggleSidebar'),
       callback: () => {
         void this.activateSidebar();
       },
@@ -49,7 +70,7 @@ export default class PaperCraftPlugin extends Plugin {
 
     this.addCommand({
       id: 'toggle-theme',
-      name: '切换稿纸主题',
+      name: t('command.toggleTheme'),
       callback: () => {
         this.toggleThemeOnActiveView();
       },
@@ -90,8 +111,12 @@ export default class PaperCraftPlugin extends Plugin {
    * 防御性加载：确保所有字段都存在
    */
   async loadSettings(): Promise<void> {
-    const savedData: unknown = await this.loadData();
-    const complete = ensureCompleteSettings(savedData as Parameters<typeof ensureCompleteSettings>[0]);
+    const savedData = await this.loadData() as Partial<PaperCraftSettings> | null;
+    const complete = ensureCompleteSettings(savedData);
+    // 首次安装（data.json 尚未保存语言）时，默认跟随 Obsidian 界面语言
+    if (!savedData?.language) {
+      complete.language = matchLanguage(detectObsidianLanguage());
+    }
     this.settings = complete;
     await this.saveSettings();
   }
@@ -102,6 +127,8 @@ export default class PaperCraftPlugin extends Plugin {
 
   async resetSettings(): Promise<void> {
     this.settings = ensureCompleteSettings(null);
+    // 重置时语言同样回到「跟随 Obsidian 界面语言」的默认值
+    this.settings.language = matchLanguage(detectObsidianLanguage());
     await this.saveSettings();
   }
 

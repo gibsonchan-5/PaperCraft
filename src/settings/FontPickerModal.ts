@@ -13,6 +13,7 @@
 
 import { App, SuggestModal } from 'obsidian';
 import { FONT_PRESETS } from '../data/Defaults';
+import { t } from '../i18n/i18n';
 
 /** 单条字体信息 */
 export interface FontItem {
@@ -141,7 +142,7 @@ const EXTRA_FONT_CANDIDATES: string[] = [
 /** 取全部内置候选字体（预设 + 扩展清单，去重） */
 export function getBuiltinFontCandidates(): string[] {
   const set = new Set<string>();
-  Object.keys(FONT_PRESETS).forEach(f => set.add(f));
+  FONT_PRESETS.forEach(f => set.add(f));
   EXTRA_FONT_CANDIDATES.forEach(f => set.add(f));
   return Array.from(set);
 }
@@ -363,11 +364,11 @@ export class FontPickerModal extends SuggestModal<FontItem> {
     // slice(0, limit)。字体库动辄数百条，必须放宽，否则大量字体永远无法显示。
     this.limit = MAX_SUGGESTIONS;
 
-    this.setPlaceholder('搜索字体名称，例如：KingHwa / 楷体 / Times');
+    this.setPlaceholder(t('fontPicker.placeholder'));
     this.setInstructions([
-      { command: '↑↓', purpose: '选择字体' },
-      { command: '↵', purpose: '应用该字体' },
-      { command: 'esc', purpose: '取消' },
+      { command: '↑↓', purpose: t('fontPicker.instructionSelect') },
+      { command: '↵', purpose: t('fontPicker.instructionApply') },
+      { command: 'esc', purpose: t('common.cancel') },
     ]);
   }
 
@@ -437,7 +438,7 @@ export class FontPickerModal extends SuggestModal<FontItem> {
     }
 
     const sampleEl = mainRow.createDiv({ cls: 'papercraft-font-sample' });
-    sampleEl.setText(item.custom ? '按输入的名称使用' : PREVIEW_SAMPLE);
+    sampleEl.setText(item.custom ? t('fontPicker.useTypedName') : PREVIEW_SAMPLE);
     if (!item.custom) {
       sampleEl.style.fontFamily = `"${item.family}"`;
     }
@@ -445,15 +446,15 @@ export class FontPickerModal extends SuggestModal<FontItem> {
     const metaRow = el.createDiv({ cls: 'papercraft-font-meta' });
 
     if (item.pinned) {
-      metaRow.createSpan({ cls: 'papercraft-font-tag', text: '最近使用' });
+      metaRow.createSpan({ cls: 'papercraft-font-tag', text: t('fontPicker.recent') });
     }
     if (item.family === this.currentFont) {
-      metaRow.createSpan({ cls: 'papercraft-font-tag is-current-tag', text: '当前' });
+      metaRow.createSpan({ cls: 'papercraft-font-tag is-current-tag', text: t('fontPicker.current') });
     }
     if (item.custom) {
-      metaRow.createSpan({ cls: 'papercraft-font-tag is-custom', text: '清单外名称' });
+      metaRow.createSpan({ cls: 'papercraft-font-tag is-custom', text: t('fontPicker.offList') });
     } else if (!item.installed) {
-      metaRow.createSpan({ cls: 'papercraft-font-tag is-missing', text: '未检测到' });
+      metaRow.createSpan({ cls: 'papercraft-font-tag is-missing', text: t('fontPicker.notDetected') });
     }
   }
 
@@ -467,20 +468,24 @@ export class FontPickerModal extends SuggestModal<FontItem> {
     const parts: string[] = [];
 
     if (this.mode === 'font-access') {
-      parts.push(`已读取本机字体库，共 ${this.installedCount} 个字族`);
+      parts.push(t('fontPicker.hintFontAccess', { count: this.installedCount }));
     } else {
       const reason = this.accessNote
-        ? `本机字体接口调用失败：${this.accessNote}`
-        : '本机字体接口不可用';
-      parts.push(`已检测到 ${this.installedCount} / ${this.totalCount} 个候选字体（${reason}，当前为内置清单宽度比对结果，仅供参考）`);
+        ? t('fontPicker.hintReasonFailed', { note: this.accessNote })
+        : t('fontPicker.hintReasonUnavailable');
+      parts.push(t('fontPicker.hintDetected', {
+        found: this.installedCount,
+        total: this.totalCount,
+        reason,
+      }));
     }
 
     if (this.fonts.length > MAX_SUGGESTIONS) {
-      parts.push(`共 ${this.fonts.length} 个字体，列表最多显示前 ${MAX_SUGGESTIONS} 项，可用搜索缩小范围`);
+      parts.push(t('fontPicker.hintTruncated', { total: this.fonts.length, max: MAX_SUGGESTIONS }));
     }
 
     const hintEl = this.modalEl.createDiv({ cls: 'papercraft-font-hint' });
-    hintEl.setText(parts.join('；'));
+    hintEl.setText(parts.join(t('common.listSeparator')));
     this.hintEl = hintEl;
   }
 

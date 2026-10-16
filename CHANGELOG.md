@@ -1,5 +1,11 @@
 # PaperCraft 更新日志
 
+## v1.1.14 (2026-10-16)
+
+### Feature (Implement basic internationalization) 
+- New General tab to allow user to change language. Chinese, Japanese and English now supported. 
+
+---
 ## v1.1.13 (2026-09-27)
 
 ### 修复（移动端键盘不弹出）

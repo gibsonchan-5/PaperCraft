@@ -5,8 +5,8 @@
 
 import { ItemView, WorkspaceLeaf } from 'obsidian';
 import type PaperCraftPlugin from '../../main';
-import type { PaperTemplate, Language } from '../data/PaperData';
-import { t } from '../i18n/i18n';
+import type { PaperTemplate } from '../data/PaperData';
+import { t, templateName } from '../i18n/i18n';
 
 export const VIEW_TYPE = 'papercraft-view';
 
@@ -23,7 +23,7 @@ export class PaperCraftView extends ItemView {
   }
 
   getDisplayText(): string {
-    return t('sidebar.title', this.getLang());
+    return t('sidebar.title');
   }
 
   getIcon(): string {
@@ -56,10 +56,6 @@ export class PaperCraftView extends ItemView {
     this.render();
   }
 
-  private getLang(): Language {
-    return this.plugin.settings.language || 'zh-CN';
-  }
-
   /**
    * 渲染侧边栏
    */
@@ -68,19 +64,20 @@ export class PaperCraftView extends ItemView {
     container.empty();
     container.addClass('papercraft-sidebar');
 
-    const lang = this.getLang();
-
     // === 标题区 ===
     const header = container.createDiv({ cls: 'papercraft-sidebar-header' });
     const headerTop = header.createDiv({ cls: 'papercraft-sidebar-header-top' });
-    headerTop.createEl('h2', { text: t('sidebar.title', lang) });
+    headerTop.createEl('h2', { text: t('sidebar.title') });
 
     const iconGroup = headerTop.createDiv({ cls: 'papercraft-header-icons' });
 
     // 清除格式按钮
     const clearBtn = iconGroup.createEl('button', {
       cls: 'papercraft-header-icon-btn',
-      attr: { 'aria-label': '清除格式', title: '清除格式（重置当前笔记样式）' },
+      attr: {
+        'aria-label': t('sidebar.clearFormat'),
+        title: t('sidebar.clearFormatTooltip'),
+      },
     });
     clearBtn.setText('↺');
     clearBtn.addEventListener('click', () => {
@@ -106,7 +103,7 @@ export class PaperCraftView extends ItemView {
     // 打开设置按钮
     const settingsBtn = iconGroup.createEl('button', {
       cls: 'papercraft-header-icon-btn',
-      attr: { 'aria-label': '设置', title: '设置' },
+      attr: { 'aria-label': t('sidebar.openSettings'), title: t('sidebar.openSettings') },
     });
     settingsBtn.setText('⚙');
     settingsBtn.addEventListener('click', () => {
@@ -127,14 +124,14 @@ export class PaperCraftView extends ItemView {
     const userTemplates = this.plugin.templateManager.getUserTemplates();
     const activeTemplateId = this.plugin.settings.activeTemplate || '';
 
-    // 按 mode 分组
-    const dayTemplates = builtinTemplates.filter(t => !t.mode || t.mode === 'day');
-    const nightTemplates = builtinTemplates.filter(t => t.mode === 'night');
+    // 按 mode 分组（注意不要把 filter 参数命名为 t，会遮蔽 i18n 的 t()）
+    const dayTemplates = builtinTemplates.filter(tpl => !tpl.mode || tpl.mode === 'day');
+    const nightTemplates = builtinTemplates.filter(tpl => tpl.mode === 'night');
 
     // 白天主题
     if (dayTemplates.length > 0) {
       const section = container.createDiv({ cls: 'papercraft-section' });
-      section.createEl('h3', { text: '白天主题', cls: 'papercraft-section-title' });
+      section.createEl('h3', { text: t('sidebar.dayThemes'), cls: 'papercraft-section-title' });
       const grid = section.createDiv({ cls: 'papercraft-template-grid' });
 
       dayTemplates.forEach(template => {
@@ -146,8 +143,8 @@ export class PaperCraftView extends ItemView {
     if (nightTemplates.length > 0) {
       const section = container.createDiv({ cls: 'papercraft-section' });
       const titleEl = section.createEl('h3', { cls: 'papercraft-section-title' });
-      titleEl.createSpan({ text: '夜间主题' });
-      titleEl.createSpan({ text: '（建议在深色模式下使用）', cls: 'papercraft-section-hint' });
+      titleEl.createSpan({ text: t('sidebar.nightThemes') });
+      titleEl.createSpan({ text: t('sidebar.nightHint'), cls: 'papercraft-section-hint' });
 
       const grid = section.createDiv({ cls: 'papercraft-template-grid' });
 
@@ -159,9 +156,9 @@ export class PaperCraftView extends ItemView {
     // 自定义模板
     const customSection = container.createDiv({ cls: 'papercraft-section' });
     const customTitleEl = customSection.createEl('h3', { cls: 'papercraft-section-title' });
-    customTitleEl.createSpan({ text: t('sidebar.custom', lang) });
+    customTitleEl.createSpan({ text: t('sidebar.custom') });
     if (userTemplates.length === 0) {
-      customTitleEl.createSpan({ text: `（${t('sidebar.noCustom', lang)}）`, cls: 'papercraft-section-hint' });
+      customTitleEl.createSpan({ text: t('sidebar.noCustom'), cls: 'papercraft-section-hint' });
     }
 
     if (userTemplates.length > 0) {
@@ -205,7 +202,7 @@ export class PaperCraftView extends ItemView {
     this.applyThumbnailStyle(thumb, template);
 
     // 名称
-    card.createDiv({ cls: 'papercraft-template-name', text: template.name });
+    card.createDiv({ cls: 'papercraft-template-name', text: templateName(template.id, template.name) });
   }
 
   /**

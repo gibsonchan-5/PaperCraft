@@ -5,9 +5,10 @@
 
 import { App, PluginSettingTab, Setting, Modal, TextComponent, Notice, Platform, SettingDefinitionItem } from 'obsidian';
 import type PaperCraftPlugin from '../../main';
-import type { TextureType, LinePattern, PartialTemplateSettings, PaperCraftSettings, PaperTemplate, MarginLineSettings } from '../data/PaperData';
+import type { TextureType, LinePattern, PartialTemplateSettings, PaperCraftSettings, PaperTemplate, MarginLineSettings, Language } from '../data/PaperData';
 import { FONT_PRESETS, DEFAULT_SETTINGS, DEFAULT_MARGIN_LINE } from '../data/Defaults';
 import { FontPickerModal, enumerateSystemFonts } from './FontPickerModal';
+import { t, fontLabel, templateName, setLanguage, getLanguage, getAvailableLanguages, LANGUAGE_LABELS, type TranslationKey } from '../i18n/i18n';
 
 /**
  * CSS 导入对话框
@@ -24,8 +25,8 @@ class CSSImportModal extends Modal {
 
   onOpen() {
     const { contentEl } = this;
-    contentEl.createEl('h3', { text: '导入 CSS 文件' });
-    contentEl.createEl('p', { text: '选择要导入的 CSS 文件，系统将自动解析其中的样式属性。' });
+    contentEl.createEl('h3', { text: t('cssImport.title') });
+    contentEl.createEl('p', { text: t('cssImport.desc') });
 
     const fileInput = contentEl.createEl('input', {
       attr: { type: 'file', accept: '.css' },
@@ -36,10 +37,10 @@ class CSSImportModal extends Modal {
 
     const buttonContainer = contentEl.createDiv({ cls: 'papercraft-modal-buttons' });
 
-    const cancelBtn = buttonContainer.createEl('button', { text: '取消' });
+    const cancelBtn = buttonContainer.createEl('button', { text: t('common.cancel') });
     cancelBtn.addEventListener('click', () => this.close());
 
-    const importBtn = buttonContainer.createEl('button', { text: '导入', cls: 'mod-cta' });
+    const importBtn = buttonContainer.createEl('button', { text: t('common.import'), cls: 'mod-cta' });
     importBtn.disabled = true;
 
     let importedSettings: PartialTemplateSettings | null = null;
@@ -53,7 +54,7 @@ class CSSImportModal extends Modal {
     importBtn.addEventListener('click', () => {
       if (importedSettings) {
         this.onImport(importedSettings);
-        new Notice('CSS 样式已导入到预览区');
+        new Notice(t('cssImport.done'));
         this.close();
       }
     });
@@ -72,20 +73,20 @@ class CSSImportModal extends Modal {
     const file = input.files?.[0];
     if (!file) return;
 
-    statusEl.textContent = '正在解析 CSS 文件...';
+    statusEl.textContent = t('cssImport.parsing');
 
     try {
       const text = await file.text();
       const settings = this.parseCSS(text);
       onSuccess(settings);
 
-      statusEl.textContent = '✓ 解析成功！可以导入。';
+      statusEl.textContent = t('cssImport.success');
       statusEl.addClass('papercraft-status-success');
       statusEl.removeClass('papercraft-status-error');
       importBtn.disabled = false;
     } catch (err) {
-      const msg = err instanceof Error ? err.message : '未知错误';
-      statusEl.textContent = `✗ 解析失败: ${msg}`;
+      const msg = err instanceof Error ? err.message : t('common.unknownError');
+      statusEl.textContent = t('cssImport.failure', { msg });
       statusEl.addClass('papercraft-status-error');
       statusEl.removeClass('papercraft-status-success');
       importBtn.disabled = true;
@@ -228,19 +229,19 @@ class TemplateNameModal extends Modal {
 
   onOpen() {
     const { contentEl } = this;
-    contentEl.createEl('h3', { text: '保存为新模板' });
+    contentEl.createEl('h3', { text: t('templateName.title') });
 
     const inputContainer = contentEl.createDiv({ cls: 'papercraft-modal-input' });
     const textInput = new TextComponent(inputContainer);
-    textInput.setPlaceholder('输入模板名称...');
+    textInput.setPlaceholder(t('templateName.placeholder'));
     textInput.inputEl.addClass('papercraft-text-input');
 
     const buttonContainer = contentEl.createDiv({ cls: 'papercraft-modal-buttons' });
 
-    const cancelBtn = buttonContainer.createEl('button', { text: '取消' });
+    const cancelBtn = buttonContainer.createEl('button', { text: t('common.cancel') });
     cancelBtn.addEventListener('click', () => this.close());
 
-    const saveBtn = buttonContainer.createEl('button', { text: '保存', cls: 'mod-cta' });
+    const saveBtn = buttonContainer.createEl('button', { text: t('common.save'), cls: 'mod-cta' });
     const doSubmit = (): void => {
       const name = textInput.getValue().trim();
       if (name) {
@@ -271,7 +272,7 @@ export class SettingsTab extends PluginSettingTab {
   plugin: PaperCraftPlugin;
   private previewPage: HTMLElement | null = null;
   private draftSettings: PaperCraftSettings | null = null;
-  private activeTab: string = 'texture'; // 当前激活的标签页
+  private activeTab: string = 'general'; // 当前激活的标签页（默认选中首个「通用」标签）
   private armedDeleteIds: Set<string> = new Set(); // 模板删除按钮的两段式确认状态
   private uiHost: HTMLElement | null = null; // 声明式设置宿主容器（render 钩子创建）
 
@@ -297,11 +298,12 @@ export class SettingsTab extends PluginSettingTab {
     // === 2. 标签导航条 ===
     const tabBar = containerEl.createDiv({ cls: 'papercraft-tab-bar' });
     const tabs = [
-      { id: 'texture', label: '纸张质感' },
-      { id: 'lines', label: '条纹图案' },
-      { id: 'colors', label: '颜色配色' },
-      { id: 'typography', label: '字体排版' },
-      { id: 'templates', label: '模板管理' },
+      { id: 'general', label: t('settings.general') },
+      { id: 'texture', label: t('settings.texture') },
+      { id: 'lines', label: t('settings.lines') },
+      { id: 'colors', label: t('settings.colors') },
+      { id: 'typography', label: t('settings.typography') },
+      { id: 'templates', label: t('settings.template') },
     ];
 
     tabs.forEach(tab => {
@@ -334,10 +336,10 @@ export class SettingsTab extends PluginSettingTab {
    */
   private buildPreviewNotice(container: HTMLElement): void {
     const notice = container.createDiv({ cls: 'papercraft-preview-notice' });
-    notice.createEl('strong', { text: '⚠️ 提示：' });
-    notice.createSpan({ text: '此处的所有参数调整仅影响上方的实时预览区，' });
+    notice.createEl('strong', { text: t('preview.noticeTitle') });
+    notice.createSpan({ text: t('preview.noticeBody1') });
     notice.createEl('br');
-    notice.createSpan({ text: '不会自动应用到当前笔记。满意后请点击底部「应用到笔记」按钮。' });
+    notice.createSpan({ text: t('preview.noticeBody2') });
   }
 
   /**
@@ -351,7 +353,7 @@ export class SettingsTab extends PluginSettingTab {
   getSettingDefinitions(): SettingDefinitionItem[] {
     return [
       {
-        name: 'PaperCraft 设置面板',
+        name: t('settings.title'),
         searchable: false,
         render: (setting): void => {
           // 将框架生成的 Setting 行改造成全宽自定义宿主
@@ -394,6 +396,9 @@ export class SettingsTab extends PluginSettingTab {
       case 'templates':
         this.renderTemplatesTab(this.tabContentEl);
         break;
+      case 'general':
+        this.renderGeneralTab(this.tabContentEl);
+        break;
     }
   }
 
@@ -405,17 +410,17 @@ export class SettingsTab extends PluginSettingTab {
 
     // 标题
     new Setting(container)
-      .setName('我的模板')
-      .setDesc('管理你保存的自定义模板（系统内置模板不可删除）');
+      .setName(t('templates.myTemplates'))
+      .setDesc(t('templates.myTemplatesDesc'));
 
     if (userTemplates.length === 0) {
       const empty = container.createDiv({ cls: 'papercraft-template-empty' });
       empty.createEl('p', {
-        text: '📝 暂无自定义模板',
+        text: t('templates.empty'),
         cls: 'papercraft-template-empty-title',
       });
       empty.createEl('p', {
-        text: '在设置面板底部点击「保存为新模板」可创建自定义模板。',
+        text: t('templates.emptyHint'),
         cls: 'papercraft-template-empty-hint',
       });
       return;
@@ -426,15 +431,18 @@ export class SettingsTab extends PluginSettingTab {
     userTemplates.forEach(template => {
       const itemEl = listEl.createDiv({ cls: 'papercraft-template-item' });
       const infoEl = itemEl.createDiv({ cls: 'papercraft-template-item-info' });
-      infoEl.createDiv({ text: template.name, cls: 'papercraft-template-item-name' });
+      infoEl.createDiv({ text: templateName(template.id, template.name), cls: 'papercraft-template-item-name' });
       const desc = template.settings.lines?.pattern === 'none'
-        ? '纯色模板'
-        : `线条：${this.patternLabel(template.settings.lines?.pattern)} · 字号：${template.settings.typography?.fontSize ?? 16}px`;
+        ? t('templates.solidColor')
+        : t('templates.lineInfo', {
+            pattern: this.patternLabel(template.settings.lines?.pattern),
+            size: template.settings.typography?.fontSize ?? 16,
+          });
       infoEl.createDiv({ text: desc, cls: 'papercraft-template-item-desc' });
 
       const actionsEl = itemEl.createDiv({ cls: 'papercraft-template-item-actions' });
       const applyBtn = actionsEl.createEl('button', {
-        text: '应用',
+        text: t('common.apply'),
         cls: 'papercraft-template-item-apply',
       });
       applyBtn.addEventListener('click', () => {
@@ -445,23 +453,23 @@ export class SettingsTab extends PluginSettingTab {
         this.draftSettings = this.cloneSettings(this.plugin.settings);
         this.refreshPreview();
         this.renderTabContent();
-        new Notice(`已应用模板：${template.name}`);
+        new Notice(t('notice.templateApplied', { name: templateName(template.id, template.name) }));
       });
 
       const deleteBtn = actionsEl.createEl('button', {
-        text: '删除',
+        text: t('common.delete'),
         cls: 'papercraft-template-item-delete',
       });
       deleteBtn.addEventListener('click', () => {
         // 两段式确认：第一次进入 armed，第二次才真正删除
         if (!this.armedDeleteIds.has(template.id)) {
           this.armedDeleteIds.add(template.id);
-          deleteBtn.textContent = '再次点击确认';
+          deleteBtn.textContent = t('templates.confirmDelete');
           deleteBtn.addClass('papercraft-armed');
           window.setTimeout(() => {
             this.armedDeleteIds.delete(template.id);
             if (deleteBtn.isConnected) {
-              deleteBtn.textContent = '删除';
+              deleteBtn.textContent = t('common.delete');
               deleteBtn.removeClass('papercraft-armed');
             }
           }, 5000);
@@ -469,35 +477,61 @@ export class SettingsTab extends PluginSettingTab {
         }
         this.armedDeleteIds.delete(template.id);
         this.plugin.templateManager.deleteUserTemplate(template.id);
-        new Notice(`已删除模板：${template.name}`);
+        new Notice(t('notice.templateDeleted', { name: templateName(template.id, template.name) }));
         this.renderTabContent();
       });
     });
   }
 
   /**
-   * 线条模式中文标签
+   * 线条模式标签（跟随当前语言）
    */
   private patternLabel(pattern: string | undefined): string {
-    const map: Record<string, string> = {
-      none: '无',
-      horizontal: '横线',
-      vertical: '竖线',
-      grid: '方格',
-      dot: '点阵',
-    };
-    return map[pattern ?? 'none'] ?? '无';
+    switch (pattern) {
+      case 'horizontal': return t('pattern.horizontal');
+      case 'vertical': return t('pattern.vertical');
+      case 'grid': return t('pattern.grid');
+      case 'dot': return t('pattern.dot');
+      default: return t('pattern.none');
+    }
+  }
+
+  /**
+   * 渲染通用标签页：语言与版本。
+   * 语言选项本身不翻译，始终用各自语言的自称书写。
+   */
+  private renderGeneralTab(container: HTMLElement): void {
+    new Setting(container)
+      .setName(t('settings.language'))
+      .setDesc(t('settings.languageDesc'))
+      .addDropdown(dropdown => {
+        getAvailableLanguages().forEach(lang => {
+          dropdown.addOption(lang, LANGUAGE_LABELS[lang]);
+        });
+        dropdown.setValue(getLanguage());
+        dropdown.onChange((value) => {
+          const lang = value as Language;
+          if (lang === getLanguage()) return;
+          setLanguage(lang);
+          this.plugin.settings.language = lang;
+          void this.plugin.saveSettings();
+          // 侧边栏立即跟随新语言
+          this.plugin.updateSidebarPreview();
+          // 整块设置 UI 重新渲染（所有文案在渲染期求值）
+          if (this.uiHost) this.renderUI(this.uiHost);
+        });
+      });
   }
 
   private renderTextureTab(container: HTMLElement): void {
     new Setting(container)
-      .setName('纹理类型')
+      .setName(t('texture.type'))
       .addDropdown(dropdown => {
-        dropdown.addOption('none', '无');
-        dropdown.addOption('kraft', '牛皮纸');
-        dropdown.addOption('xuan', '宣纸');
-        dropdown.addOption('concrete', '混凝土');
-        dropdown.addOption('linen', '亚麻');
+        dropdown.addOption('none', t('common.none'));
+        dropdown.addOption('kraft', t('texture.kraft'));
+        dropdown.addOption('xuan', t('texture.xuan'));
+        dropdown.addOption('concrete', t('texture.concrete'));
+        dropdown.addOption('linen', t('texture.linen'));
         dropdown.setValue(this.getDraft().texture.type);
         dropdown.onChange((value) => {
           this.getDraft().texture.type = value as TextureType;
@@ -506,8 +540,8 @@ export class SettingsTab extends PluginSettingTab {
       });
 
     new Setting(container)
-      .setName('纹理透明度')
-      .setDesc('控制纹理的可见程度')
+      .setName(t('texture.opacity'))
+      .setDesc(t('texture.opacityDesc'))
       .addSlider(slider => {
         slider.setLimits(0, 1, 0.01);
         slider.setValue(this.getDraft().texture.textureOpacity);
@@ -518,8 +552,8 @@ export class SettingsTab extends PluginSettingTab {
       });
 
     new Setting(container)
-      .setName('纹理缩放')
-      .setDesc('调整纹理的大小比例')
+      .setName(t('texture.scale'))
+      .setDesc(t('texture.scaleDesc'))
       .addSlider(slider => {
         slider.setLimits(0.5, 2, 0.1);
         slider.setValue(this.getDraft().texture.textureScale);
@@ -532,13 +566,13 @@ export class SettingsTab extends PluginSettingTab {
 
   private renderLinesTab(container: HTMLElement): void {
     new Setting(container)
-      .setName('线条类型')
+      .setName(t('lines.type'))
       .addDropdown(dropdown => {
-        dropdown.addOption('none', '无');
-        dropdown.addOption('horizontal', '横线');
-        dropdown.addOption('vertical', '竖线');
-        dropdown.addOption('grid', '方格');
-        dropdown.addOption('dot', '点阵');
+        dropdown.addOption('none', t('pattern.none'));
+        dropdown.addOption('horizontal', t('pattern.horizontal'));
+        dropdown.addOption('vertical', t('pattern.vertical'));
+        dropdown.addOption('grid', t('pattern.grid'));
+        dropdown.addOption('dot', t('pattern.dot'));
         dropdown.setValue(this.getDraft().lines.pattern);
         dropdown.onChange((value) => {
           this.getDraft().lines.pattern = value as LinePattern;
@@ -547,7 +581,7 @@ export class SettingsTab extends PluginSettingTab {
       });
 
     new Setting(container)
-      .setName('线条间距 (px)')
+      .setName(t('lines.gap'))
       .addText(text => {
         text.setValue(String(this.getDraft().lines.gap));
         text.onChange((value) => {
@@ -560,8 +594,8 @@ export class SettingsTab extends PluginSettingTab {
       });
 
     new Setting(container)
-      .setName('线条粗细 (px)')
-      .setDesc('调整线条的粗细')
+      .setName(t('lines.thickness'))
+      .setDesc(t('lines.thicknessDesc'))
       .addSlider(slider => {
         slider.setLimits(0.1, 2, 0.1);
         slider.setValue(this.getDraft().lines.thickness);
@@ -572,7 +606,7 @@ export class SettingsTab extends PluginSettingTab {
       });
 
     new Setting(container)
-      .setName('线条颜色')
+      .setName(t('lines.color'))
       .addColorPicker(color => {
         color.setValue(this.rgbToHex(this.getDraft().lines.color));
         color.onChange((value) => {
@@ -582,13 +616,13 @@ export class SettingsTab extends PluginSettingTab {
       });
 
     // === 装订线 ===
-    new Setting(container).setName('装订线').setHeading();
+    new Setting(container).setName(t('marginLine.heading')).setHeading();
 
     const marginLine = this.getMarginLine();
 
     new Setting(container)
-      .setName('显示装订线')
-      .setDesc('在纸张左侧绘制一条竖线，模拟装订位置（默认关闭）')
+      .setName(t('marginLine.show'))
+      .setDesc(t('marginLine.showDesc'))
       .addToggle(toggle => {
         toggle.setValue(marginLine.enabled);
         toggle.onChange((value) => {
@@ -600,8 +634,8 @@ export class SettingsTab extends PluginSettingTab {
 
     if (marginLine.enabled) {
       new Setting(container)
-        .setName('距左边缘 (px)')
-        .setDesc('装订线距离纸张左边缘的位置')
+        .setName(t('marginLine.position'))
+        .setDesc(t('marginLine.positionDesc'))
         .addSlider(slider => {
           slider.setLimits(0, 200, 1);
           slider.setValue(marginLine.position);
@@ -613,7 +647,7 @@ export class SettingsTab extends PluginSettingTab {
         });
 
       new Setting(container)
-        .setName('装订线粗细 (px)')
+        .setName(t('marginLine.width'))
         .addSlider(slider => {
           slider.setLimits(0.5, 6, 0.5);
           slider.setValue(marginLine.width);
@@ -625,7 +659,7 @@ export class SettingsTab extends PluginSettingTab {
         });
 
       new Setting(container)
-        .setName('装订线颜色')
+        .setName(t('marginLine.color'))
         .addColorPicker(color => {
           color.setValue(this.rgbToHex(marginLine.color));
           color.onChange((value) => {
@@ -649,7 +683,7 @@ export class SettingsTab extends PluginSettingTab {
 
   private renderColorsTab(container: HTMLElement): void {
     new Setting(container)
-      .setName('纸张背景色')
+      .setName(t('colors.paperBackground'))
       .addColorPicker(color => {
         color.setValue(this.rgbToHex(this.getDraft().colors.paperBackground));
         color.onChange((value) => {
@@ -659,7 +693,7 @@ export class SettingsTab extends PluginSettingTab {
       });
 
     new Setting(container)
-      .setName('文字颜色')
+      .setName(t('colors.textColor'))
       .addColorPicker(color => {
         color.setValue(this.rgbToHex(this.getDraft().colors.textColor));
         color.onChange((value) => {
@@ -671,17 +705,17 @@ export class SettingsTab extends PluginSettingTab {
 
   private renderTypographyTab(container: HTMLElement): void {
     new Setting(container)
-      .setName('字体')
+      .setName(t('typography.font'))
       .addDropdown(dropdown => {
         const currentFont = this.getDraft().typography.fontFamily;
-        dropdown.addOption('', '自定义（手动输入）');
+        dropdown.addOption('', t('typography.fontCustom'));
         // 已选字体不在预设清单内（如从本机字体库挑的自装字体）时，
         // 动态补一条同名选项，否则下拉框会回落显示「自定义」而看不到真值
-        if (currentFont && !(currentFont in FONT_PRESETS)) {
-          dropdown.addOption(currentFont, `${currentFont}（当前）`);
+        if (currentFont && !FONT_PRESETS.includes(currentFont)) {
+          dropdown.addOption(currentFont, t('typography.fontCurrent', { font: currentFont }));
         }
-        Object.entries(FONT_PRESETS).forEach(([value, label]) => {
-          dropdown.addOption(value, label);
+        FONT_PRESETS.forEach(family => {
+          dropdown.addOption(family, fontLabel(family));
         });
         dropdown.setValue(currentFont);
         dropdown.onChange((value) => {
@@ -691,22 +725,22 @@ export class SettingsTab extends PluginSettingTab {
       });
 
     new Setting(container)
-      .setName('系统字体')
-      .setDesc('从本机已安装的字体中挑选，支持搜索与实时预览；若本机字体接口不可用，将退回内置清单比对')
+      .setName(t('typography.systemFonts'))
+      .setDesc(t('typography.systemFontsDesc'))
       .addButton(btn => {
-        btn.setButtonText('浏览字体…');
-        btn.setTooltip('打开系统字体选择器');
+        btn.setButtonText(t('typography.browseFonts'));
+        btn.setTooltip(t('typography.browseFontsTooltip'));
         btn.onClick(() => {
           void this.openFontPicker();
         });
       });
 
     new Setting(container)
-      .setName('自定义字体名称')
-      .setDesc('如果预设字体不满足需求，可在此手动输入字体名称')
+      .setName(t('typography.customFontName'))
+      .setDesc(t('typography.customFontNameDesc'))
       .addText(text => {
         text.setValue(this.getDraft().typography.fontFamily);
-        text.setPlaceholder('输入字体名称...');
+        text.setPlaceholder(t('typography.fontPlaceholder'));
         text.onChange((value) => {
           this.getDraft().typography.fontFamily = value;
           this.refreshPreview();
@@ -714,7 +748,7 @@ export class SettingsTab extends PluginSettingTab {
       });
 
     new Setting(container)
-      .setName('字号 (px)')
+      .setName(t('typography.fontSize'))
       .addText(text => {
         text.setValue(String(this.getDraft().typography.fontSize));
         text.onChange((value) => {
@@ -727,8 +761,8 @@ export class SettingsTab extends PluginSettingTab {
       });
 
     new Setting(container)
-      .setName('字间距 (em)')
-      .setDesc('调整字符之间的间距')
+      .setName(t('typography.letterSpacing'))
+      .setDesc(t('typography.letterSpacingDesc'))
       .addSlider(slider => {
         slider.setLimits(0, 0.5, 0.01);
         slider.setValue(this.getDraft().typography.letterSpacing);
@@ -739,8 +773,8 @@ export class SettingsTab extends PluginSettingTab {
       });
 
     new Setting(container)
-      .setName('行高')
-      .setDesc('调整行与行之间的间距')
+      .setName(t('typography.lineHeight'))
+      .setDesc(t('typography.lineHeightDesc'))
       .addSlider(slider => {
         slider.setLimits(1, 3, 0.1);
         slider.setValue(this.getDraft().typography.lineHeight);
@@ -751,12 +785,12 @@ export class SettingsTab extends PluginSettingTab {
       });
 
     // ===== 页面边距 =====
-    new Setting(container).setName('页面边距').setHeading();
+    new Setting(container).setName(t('typography.pageMargins')).setHeading();
 
-    this.addMarginSetting(container, '上边距 (px)', '调整内容区域距纸张上边框的留白宽度', 'top');
-    this.addMarginSetting(container, '下边距 (px)', '调整内容区域距纸张下边框的留白宽度', 'bottom');
-    this.addMarginSetting(container, '左边距 (px)', '调整内容区域距纸张左边框的留白宽度', 'left');
-    this.addMarginSetting(container, '右边距 (px)', '调整内容区域距纸张右边框的留白宽度', 'right');
+    this.addMarginSetting(container, 'top', t('margin.top'), t('margin.topDesc'));
+    this.addMarginSetting(container, 'bottom', t('margin.bottom'), t('margin.bottomDesc'));
+    this.addMarginSetting(container, 'left', t('margin.left'), t('margin.leftDesc'));
+    this.addMarginSetting(container, 'right', t('margin.right'), t('margin.rightDesc'));
   }
 
   /**
@@ -764,9 +798,9 @@ export class SettingsTab extends PluginSettingTab {
    */
   private addMarginSetting(
     container: HTMLElement,
+    side: 'top' | 'bottom' | 'left' | 'right',
     name: string,
-    desc: string,
-    side: 'top' | 'bottom' | 'left' | 'right'
+    desc: string
   ): void {
     new Setting(container)
       .setName(name)
@@ -791,14 +825,14 @@ export class SettingsTab extends PluginSettingTab {
    * 打开系统字体选择器：先枚举本机字体，再弹出搜索式选择面板
    */
   private async openFontPicker(): Promise<void> {
-    const scanning = new Notice('正在扫描本机字体…', 0);
+    const scanning = new Notice(t('fontPicker.scanning'), 0);
 
     try {
       const result = await enumerateSystemFonts();
       scanning.hide();
 
       if (!result.fonts || result.fonts.length === 0) {
-        new Notice('未能获取到字体列表，请改用「自定义字体名称」手动输入');
+        new Notice(t('fontPicker.noFonts'));
         return;
       }
 
@@ -826,8 +860,8 @@ export class SettingsTab extends PluginSettingTab {
       }).open();
     } catch (err) {
       scanning.hide();
-      const msg = err instanceof Error ? err.message : '未知错误';
-      new Notice(`字体扫描失败：${msg}`);
+      const msg = err instanceof Error ? err.message : t('common.unknownError');
+      new Notice(t('fontPicker.scanFailed', { msg }));
     }
   }
 
@@ -871,7 +905,7 @@ export class SettingsTab extends PluginSettingTab {
 
     // 应用到笔记
     const applyBtn = btnContainer.createEl('button', {
-      text: '应用到笔记',
+      text: t('action.applyToNote'),
       cls: 'papercraft-action-btn',
     });
     applyBtn.addEventListener('click', () => {
@@ -880,7 +914,7 @@ export class SettingsTab extends PluginSettingTab {
 
     // 保存为新模板
     const saveBtn = btnContainer.createEl('button', {
-      text: '保存为新模板',
+      text: t('action.saveAsTemplate'),
       cls: 'papercraft-action-btn',
     });
     saveBtn.addEventListener('click', () => {
@@ -893,7 +927,7 @@ export class SettingsTab extends PluginSettingTab {
 
     // 导入 CSS
     const importBtn = btnContainer.createEl('button', {
-      text: '导入 CSS',
+      text: t('action.importCss'),
       cls: 'papercraft-action-btn',
     });
     importBtn.addEventListener('click', () => {
@@ -919,14 +953,14 @@ export class SettingsTab extends PluginSettingTab {
 
     // 重置（只重置预览草稿，不影响笔记）
     const resetBtn = btnContainer.createEl('button', {
-      text: '重置预览',
+      text: t('action.resetPreview'),
       cls: 'papercraft-action-btn',
     });
     resetBtn.addEventListener('click', () => {
       this.draftSettings = this.cloneSettings(DEFAULT_SETTINGS);
       this.refreshPreview();
       if (this.uiHost) this.renderUI(this.uiHost);
-      new Notice('预览已重置');
+      new Notice(t('notice.previewReset'));
     });
   }
 
@@ -947,7 +981,7 @@ export class SettingsTab extends PluginSettingTab {
 
       await this.plugin.saveSettings();
       this.plugin.refreshTheme();
-      new Notice('已应用到当前笔记');
+      new Notice(t('notice.appliedToNote'));
     }
   }
 
@@ -968,7 +1002,7 @@ export class SettingsTab extends PluginSettingTab {
       },
     };
     this.plugin.templateManager.addUserTemplate(template);
-    new Notice(`模板"${name}"已保存`);
+    new Notice(t('notice.templateSaved', { name }));
     // 即时刷新「模板管理」标签页，让新模板马上出现在列表里（否则要手动切一次标签）
     this.renderTabContent();
   }
@@ -978,19 +1012,12 @@ export class SettingsTab extends PluginSettingTab {
    */
   private buildPreview(container: HTMLElement): void {
     const wrapper = container.createDiv({ cls: 'papercraft-preview-wrapper' });
-    wrapper.createDiv({ cls: 'papercraft-preview-title', text: '实时预览（1:1 真实尺寸，可滚动；调整参数此处实时变化，点击"应用到笔记"才生效）' });
+    wrapper.createDiv({ cls: 'papercraft-preview-title', text: t('preview.title') });
 
     const previewBox = wrapper.createDiv({ cls: 'papercraft-preview-box' });
     this.previewPage = previewBox.createDiv({ cls: 'papercraft-preview-page' });
 
-    const sampleTexts = [
-      '落霞与孤鹜齐飞，秋水共长天一色。',
-      '渔舟唱晚，响穷彭蠡之滨；',
-      '雁阵惊寒，声断衡阳之浦。',
-      '遥襟甫畅，逸兴遄飞。',
-      '爽籁发而清风生，纤歌凝而白云遏。',
-      '睢园绿竹，气凌彭泽之樽；',
-    ];
+    const sampleTexts = [1, 2, 3, 4, 5, 6].map(n => t(`preview.sample.${n}` as TranslationKey));
     sampleTexts.forEach(text => {
       this.previewPage?.createDiv({ cls: 'papercraft-preview-line', text });
     });
